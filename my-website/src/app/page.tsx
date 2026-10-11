@@ -132,7 +132,15 @@ export default function Home() {
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [candidateProfile, setCandidateProfile] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [selectedJob, setSelectedJob] = useState<any>({
+    id: "job-demo-1",
+    title: "Data Analyst Returnship",
+    company_name: "Nova Technologies",
+    location: "Bangalore, IN",
+    work_mode: "Hybrid",
+    salary_min: 35000,
+    compatibility: { match_score: 89 },
+  });
   const [myApplications, setMyApplications] = useState<any[]>([]);
   const [employerApplications, setEmployerApplications] = useState<any[]>([]);
 
@@ -220,9 +228,11 @@ export default function Home() {
       // Pick Data Analyst Returnship by Nova Technologies as the default featured job
       const demoJob =
         (jobsRes.data || []).find(
-          (j: any) => j.title.includes("Data Analyst") && j.company_name.includes("Nova")
+          (j: any) => j.title?.includes("Data Analyst") && j.company_name?.includes("Nova")
         ) || jobsRes.data?.[0];
-      setSelectedJob(demoJob);
+      if (demoJob) {
+        setSelectedJob(demoJob);
+      }
     } catch (err: any) {
       console.error("Error refreshing candidate data:", err);
     }

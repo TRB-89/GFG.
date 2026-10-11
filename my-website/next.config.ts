@@ -1,16 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    root: __dirname,
-  },
-  allowedDevOrigins: [
-    "64280342f6e3bd.lhr.life",
-    "*.lhr.life",
-    "tiny-readers-follow.loca.lt",
-    "*.loca.lt",
-    "localhost:3000",
-  ],
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
@@ -18,12 +8,20 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/:path*",
-      },
-    ];
+    const backendUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.BACKEND_URL ||
+      (process.env.NODE_ENV === "development" ? "http://127.0.0.1:8000" : undefined);
+
+    if (backendUrl) {
+      return [
+        {
+          source: "/api/:path*",
+          destination: `${backendUrl}/api/:path*`,
+        },
+      ];
+    }
+    return [];
   },
 };
 
