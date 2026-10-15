@@ -16,15 +16,271 @@ from backend.app.models.candidate import (
 from backend.app.models.company import Company
 from backend.app.models.job import Job, JobSkill
 from backend.app.models.application import Application
+from backend.app.models.community import (
+    MentorProfile,
+    ComebackCircle,
+    CircleMembership,
+    CircleDiscussionPost,
+)
 from backend.app.utils.security import hash_password
 
 DEFAULT_PASSWORD_HASH = hash_password("Password@123")
+
+def seed_community_data(db):
+    """Seed Module 8 Mentors and Comeback Circles if not already present."""
+    if db.query(MentorProfile).first():
+        return
+
+    print("Seeding Module 8 Mentorship and Comeback Circles...")
+    
+    mentors_to_seed = [
+        MentorProfile(
+            id=str(uuid.uuid4()),
+            name="Dr. Meera Iyer",
+            title="Lead Data Scientist & Returnship Advisor",
+            company="Microsoft / Ex-ThoughtWorks",
+            field="data_analytics",
+            years_of_experience=12,
+            bio="Specializes in helping women relaunch careers in data analytics, SQL warehousing, and applied machine learning after maternity and extended career breaks.",
+            expertise=["Data Analytics", "SQL", "Python", "Power BI", "Career Break Narrative", "Technical Interview Prep"],
+            languages=["English", "Hindi", "Tamil"],
+            availability="Saturdays (10:00 AM - 2:00 PM) & Tuesday Evenings",
+            verification_status="verified",
+            mentorship_formats=["1:1 Video", "Portfolio Critique", "Resume Deep Dive"],
+            is_demo=True,
+            rating=4.9,
+            review_count=28
+        ),
+        MentorProfile(
+            id=str(uuid.uuid4()),
+            name="Pooja Ramanathan",
+            title="Engineering Director & Cloud Architect",
+            company="Amazon Web Services",
+            field="software_it",
+            years_of_experience=14,
+            bio="Transitioned back into tech after a 3-year sabbatical. Passionate about cloud architectures, distributed backend systems, and salary negotiation for mid-career women.",
+            expertise=["Cloud Architecture", "System Design", "Backend Engineering", "Salary Negotiation", "Career Break Transition"],
+            languages=["English", "Kannada", "Hindi"],
+            availability="Sundays (11:00 AM - 3:00 PM)",
+            verification_status="verified",
+            mentorship_formats=["1:1 Video", "System Design Mock", "Salary Strategy"],
+            is_demo=True,
+            rating=4.95,
+            review_count=34
+        ),
+        MentorProfile(
+            id=str(uuid.uuid4()),
+            name="Ananya Sen",
+            title="VP of Risk Analytics & Financial Modeling",
+            company="HDFC Bank / Ex-Barclays",
+            field="banking_finance",
+            years_of_experience=11,
+            bio="Guides professionals into corporate finance, quantitative risk management, and regulatory compliance following career pauses.",
+            expertise=["Financial Modeling", "Risk Analytics", "Regulatory Compliance", "Interview Prep"],
+            languages=["English", "Bengali", "Hindi"],
+            availability="Thursday Evenings & Saturday Mornings",
+            verification_status="verified",
+            mentorship_formats=["1:1 Video", "Async Resume Review"],
+            is_demo=True,
+            rating=4.85,
+            review_count=19
+        ),
+        MentorProfile(
+            id=str(uuid.uuid4()),
+            name="Sneha Kulkarni",
+            title="Growth Marketing Director & Brand Strategist",
+            company="Nykaa / D2C Advisory",
+            field="marketing",
+            years_of_experience=9,
+            bio="Helping marketing professionals master modern performance analytics, social storytelling, and remote-first agency workflows.",
+            expertise=["Growth Marketing", "Content Strategy", "Performance Analytics", "Remote Work Setup"],
+            languages=["English", "Marathi", "Hindi"],
+            availability="Wednesday & Friday Evenings",
+            verification_status="verified",
+            mentorship_formats=["1:1 Video", "Portfolio Critique", "Async Feedback"],
+            is_demo=True,
+            rating=4.88,
+            review_count=22
+        ),
+        MentorProfile(
+            id=str(uuid.uuid4()),
+            name="Kavita Desai",
+            title="Head of People & Inclusive Talent Programs",
+            company="TalentBridge Global",
+            field="human_resources",
+            years_of_experience=13,
+            bio="Experienced in returnship program design, behavioral interviewing, and transparent pay equity discussions for returning candidates.",
+            expertise=["Behavioral Interviewing", "Salary Negotiation", "Career Break Framing", "HR Strategy"],
+            languages=["English", "Gujarati", "Hindi"],
+            availability="Tuesday & Thursday Mornings",
+            verification_status="verified",
+            mentorship_formats=["1:1 Video", "Mock Behavioral Interview"],
+            is_demo=True,
+            rating=4.92,
+            review_count=31
+        ),
+        MentorProfile(
+            id=str(uuid.uuid4()),
+            name="Dr. Radhika Nair",
+            title="Dean of Online Learning & EdTech Curriculum Lead",
+            company="UpGrad / Ex-IIT Madras",
+            field="teaching_education",
+            years_of_experience=16,
+            bio="Mentors educators and academic professionals shifting into instructional design, online pedagogy, and corporate training.",
+            expertise=["Instructional Design", "EdTech Curriculum", "Higher Ed Transition", "Public Speaking"],
+            languages=["English", "Malayalam", "Hindi"],
+            availability="Weekend Mornings",
+            verification_status="verified",
+            mentorship_formats=["1:1 Video", "Portfolio Review"],
+            is_demo=True,
+            rating=4.9,
+            review_count=17
+        ),
+    ]
+    for mentor in mentors_to_seed:
+        db.add(mentor)
+        
+    # Comeback Circles
+    circle_1 = ComebackCircle(
+        id=str(uuid.uuid4()),
+        name="Data Analytics Restarters Cohort",
+        industry="data_analytics",
+        career_objective="Returning to full-time Data Analyst & BI Specialist roles within 3 to 6 months.",
+        learning_goals=[
+            "Master SQL window functions and aggregations",
+            "Build an interactive Power BI sales & churn dashboard",
+            "Complete 2 peer resume and portfolio reviews"
+        ],
+        language="English & Hindi",
+        max_members=15,
+        current_member_count=8,
+        milestones=[
+            {"id": 1, "title": "SQL Portfolio Database Schema Finalized", "completed": True},
+            {"id": 2, "title": "Power BI Executive Dashboard Published", "completed": False},
+            {"id": 3, "title": "Peer Mock Technical Interview Round", "completed": False}
+        ],
+        scheduled_sessions=[
+            {"title": "Weekly Cohort Standup & Progress Sync", "time": "Every Saturday 10:30 AM IST"},
+            {"title": "Live SQL Query Clinic & Code Review", "time": "Alternate Wednesdays 7:00 PM IST"}
+        ],
+        portfolio_activities=[
+            {"title": "Kaggle Dataset Exploration Exchange", "description": "Pairs review each other's exploratory data analysis scripts and notebook documentation."}
+        ],
+        is_demo=True
+    )
+    
+    circle_2 = ComebackCircle(
+        id=str(uuid.uuid4()),
+        name="Women in Tech Moms & Returners",
+        industry="software_it",
+        career_objective="Refreshing full-stack and cloud competencies to secure software engineering returnships.",
+        learning_goals=[
+            "Refresh Git workflow and modern CI/CD pipelines",
+            "Deploy a full-stack React + FastAPI portfolio project",
+            "Practice system design fundamentals"
+        ],
+        language="English",
+        max_members=15,
+        current_member_count=11,
+        milestones=[
+            {"id": 1, "title": "GitHub Profile Readme Overhaul", "completed": True},
+            {"id": 2, "title": "API Microservice Deployed to Cloud", "completed": True},
+            {"id": 3, "title": "Data Structures & Algorithms 30-Day Sprint", "completed": False}
+        ],
+        scheduled_sessions=[
+            {"title": "Tech Moms Coding Hour", "time": "Sundays 4:00 PM IST"},
+            {"title": "System Design Whiteboard Jam", "time": "Tuesdays 8:00 PM IST"}
+        ],
+        portfolio_activities=[
+            {"title": "Code Review Buddies", "description": "Review and critique pull requests on fellow cohort members' GitHub repositories."}
+        ],
+        is_demo=True
+    )
+    
+    circle_3 = ComebackCircle(
+        id=str(uuid.uuid4()),
+        name="Bilingual Career Relaunchers (Hindi & English)",
+        industry="administration",
+        career_objective="Re-entering project management, business administration, and client operations.",
+        learning_goals=[
+            "Agile Scrum and Jira sprint management practice",
+            "Executive business communication and presentation clinic",
+            "Stakeholder budget tracking models in Excel"
+        ],
+        language="Hindi & English",
+        max_members=15,
+        current_member_count=6,
+        milestones=[
+            {"id": 1, "title": "Jira Sprint Board Simulation", "completed": True},
+            {"id": 2, "title": "Executive Summary Deck Presentation", "completed": False}
+        ],
+        scheduled_sessions=[
+            {"title": "Bi-weekly PM Case Study Discussion", "time": "Thursdays 6:30 PM IST"}
+        ],
+        portfolio_activities=[
+            {"title": "Project Scope Document Review", "description": "Drafting and peer-auditing project charter templates."}
+        ],
+        is_demo=True
+    )
+    
+    db.add(circle_1)
+    db.add(circle_2)
+    db.add(circle_3)
+    db.flush()
+    
+    # Add initial discussion posts to Circle 1
+    post_1 = CircleDiscussionPost(
+        id=str(uuid.uuid4()),
+        circle_id=circle_1.id,
+        author_id="demo-cand-1",
+        author_name="Ritu Verma",
+        author_role="Candidate Peer",
+        title="Tips for practicing window functions in PostgreSQL?",
+        content="Hey cohort! I am currently working on Milestone 1 (SQL Window Functions). Did anyone find a clean dataset to practice ROW_NUMBER() and DENSE_RANK() partitioning? Happy to pair up this Friday!",
+        category="Learning Goal",
+        likes_count=4
+    )
+    post_2 = CircleDiscussionPost(
+        id=str(uuid.uuid4()),
+        circle_id=circle_1.id,
+        author_id="demo-cand-2",
+        author_name="Ananya Sen",
+        author_role="Candidate Peer",
+        title="First returnship technical interview scheduled!",
+        content="Wanted to share a win with everyone — after 3 years out of tech, I just heard back from Nova Solutions for a returnship screening! The AI interview practice module on explaining career breaks helped calm my nerves so much.",
+        category="Wins & Encouragement",
+        likes_count=9
+    )
+    db.add(post_1)
+    db.add(post_2)
+    db.commit()
+    print("Module 8 Mentors and Comeback Circles seeded successfully.")
 
 def seed_database():
     init_db()
     db = SessionLocal()
 
-    # Check if already seeded
+    # Ensure admin user exists
+    admin_prof = db.query(Profile).filter(Profile.email == "admin@gfg.org").first()
+    if not admin_prof:
+        admin_prof = Profile(
+            id=str(uuid.uuid4()),
+            full_name="GFG Platform Administrator",
+            email="admin@gfg.org",
+            password_hash=DEFAULT_PASSWORD_HASH,
+            phone="+91 99999 00000",
+            location="Bengaluru, India",
+            role="admin",
+            approval_status="active",
+            bio="Platform administrator and governance reviewer."
+        )
+        db.add(admin_prof)
+        db.commit()
+
+    # Always ensure Module 8 community data is populated
+    seed_community_data(db)
+
+    # Check if already seeded for core data
     existing_priya = db.query(Profile).filter(Profile.email == "priya.sharma@example.com").first()
     if existing_priya:
         print("Database already seeded with demo data.")
@@ -581,6 +837,8 @@ def seed_database():
             "title": "DevOps Junior Associate",
             "desc": "Assist infrastructure automation, CI/CD pipelines in GitHub Actions and Docker containerization.",
             "emp_type": "internship",
+            "opp_type": "internship",
+            "sector": "software_it",
             "work_mode": "remote",
             "loc": "Bengaluru, India",
             "min_exp": 1.0,
@@ -594,6 +852,106 @@ def seed_database():
             "perm": True,
             "skills": [("Docker", True), ("Git & GitHub", True), ("AWS", False)]
         },
+        {
+            "comp": "Infosys Springboard",
+            "title": "EdTech Curriculum & Instruction Lead",
+            "desc": "Design learning progressions, interactive video modules, and self-paced assessments for women in technology tracks.",
+            "emp_type": "full_time",
+            "opp_type": "remote",
+            "sector": "teaching_education",
+            "work_mode": "remote",
+            "loc": "Remote / Bengaluru",
+            "min_exp": 2.0,
+            "min_break": 6,
+            "max_break": 36,
+            "sal_min": 45000.0,
+            "sal_max": 55000.0,
+            "sal_curr": "INR",
+            "dur": 12,
+            "hours": 6,
+            "perm": True,
+            "skills": [("Communication", True), ("Python", False)]
+        },
+        {
+            "comp": "Tata Digital",
+            "title": "Health Informatics & Patient Analytics Returnship",
+            "desc": "Support health data harmonization, clinical metric extraction, and telehealth analytics dashboards.",
+            "emp_type": "returnship",
+            "opp_type": "returnship",
+            "sector": "healthcare",
+            "work_mode": "hybrid",
+            "loc": "Mumbai, India",
+            "min_exp": 2.0,
+            "min_break": 6,
+            "max_break": 36,
+            "sal_min": 40000.0,
+            "sal_max": 52000.0,
+            "sal_curr": "INR",
+            "dur": 4,
+            "hours": 4,
+            "perm": True,
+            "skills": [("SQL", True), ("Data Visualization", True)]
+        },
+        {
+            "comp": "Accenture Re-Start",
+            "title": "Public Policy & Governance Research Fellow",
+            "desc": "Analyze regulatory guidelines, public policy metrics, and digital governance initiatives with state and central agencies.",
+            "emp_type": "full_time",
+            "opp_type": "full_time",
+            "sector": "gov_exams",
+            "work_mode": "hybrid",
+            "loc": "New Delhi / Remote",
+            "min_exp": 2.5,
+            "min_break": 6,
+            "max_break": 48,
+            "sal_min": 48000.0,
+            "sal_max": 62000.0,
+            "sal_curr": "INR",
+            "dur": 12,
+            "hours": 7,
+            "perm": True,
+            "skills": [("Communication", True), ("Financial Analysis", False)]
+        },
+        {
+            "comp": "CrediAI Labs",
+            "title": "Data Engineering Independent Consultant",
+            "desc": "Short-term consulting sprint optimizing PostgreSQL query performance, ETL cron schedules, and data validation rules.",
+            "emp_type": "contract",
+            "opp_type": "freelance",
+            "sector": "freelance_consulting",
+            "work_mode": "remote",
+            "loc": "Remote / Chennai",
+            "min_exp": 3.5,
+            "min_break": 4,
+            "max_break": 36,
+            "sal_min": 60000.0,
+            "sal_max": 80000.0,
+            "sal_curr": "INR",
+            "dur": 3,
+            "hours": 4,
+            "perm": False,
+            "skills": [("SQL", True), ("PostgreSQL", True), ("Python", True)]
+        },
+        {
+            "comp": "Nova Technologies",
+            "title": "Women in Tech Startup Bootcamp Fellow",
+            "desc": "Join our venture builder incubator track. Develop prototype MVPs, learn venture economics, and validate product-market fit.",
+            "emp_type": "returnship",
+            "opp_type": "short_term_project",
+            "sector": "entrepreneurship",
+            "work_mode": "remote",
+            "loc": "Remote / Bengaluru",
+            "min_exp": 1.5,
+            "min_break": 6,
+            "max_break": 36,
+            "sal_min": 35000.0,
+            "sal_max": 45000.0,
+            "sal_curr": "INR",
+            "dur": 3,
+            "hours": 4,
+            "perm": True,
+            "skills": [("Product Management", True), ("Communication", True)]
+        },
     ]
 
     job_objs = []
@@ -601,12 +959,33 @@ def seed_database():
 
     for jm in jobs_meta:
         comp = company_objs[jm["comp"]]
+        sec = jm.get("sector")
+        if not sec:
+            t = jm["title"].lower()
+            if "data" in t or "analyst" in t or "machine learning" in t:
+                sec = "data_analytics"
+            elif "marketing" in t:
+                sec = "marketing"
+            elif "hr" in t or "people" in t:
+                sec = "human_resources"
+            elif "project" in t or "coordinator" in t:
+                sec = "administration"
+            elif "customer" in t:
+                sec = "retail_support"
+            elif "risk" in t or "merchant" in t:
+                sec = "banking_finance"
+            else:
+                sec = "software_it"
+
+        opp_t = jm.get("opp_type", jm["emp_type"])
         job = Job(
             id=str(uuid.uuid4()),
             company_id=comp.id,
             title=jm["title"],
             description=jm["desc"],
             employment_type=jm["emp_type"],
+            opportunity_type=opp_t,
+            sector=sec,
             work_mode=jm["work_mode"],
             location=jm["loc"],
             minimum_experience=jm["min_exp"],
@@ -620,6 +999,15 @@ def seed_database():
             permanent_conversion_possible=jm["perm"],
             application_deadline=date.today() + timedelta(days=45),
             status="active",
+            employer_verification_status="verified",
+            is_verified_employer=True,
+            data_source="verified_partner",
+            learning_objectives="Structured returnship curriculum with 1:1 senior mentorship, weekly sprint check-ins, and hands-on production codebases.",
+            mentorship_available=True,
+            stipend_or_salary_type="paid",
+            stipend_amount_description=f"₹{int(jm['sal_min']):,} - ₹{int(jm['sal_max']):,} / month stipend",
+            eligibility_criteria=f"Career break >= {jm['min_break']} months, welcoming all caregiving or maternal pause backgrounds.",
+            conversion_rate_percentage=78 if jm["perm"] else 40,
         )
         db.add(job)
         db.flush()

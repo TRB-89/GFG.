@@ -48,10 +48,11 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS configuration per Section 30
+# CORS configuration per Section 30 & Module 12 Deployment
 origins = settings.cors_origins
-if not origins or "http://localhost:3000" not in origins:
-    origins = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"]
+if settings.ENVIRONMENT == "development":
+    if not origins or "http://localhost:3000" not in origins:
+        origins = ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000", "http://127.0.0.1:3001"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -81,6 +82,16 @@ from backend.app.routers import (
     uploads,
     admin,
     ai,
+    digital_twin,
+    simulator,
+    adaptive_learning,
+    career_passport_v2,
+    community,
+    inclusivity,
+    employer_intelligence,
+    government_pilot,
+    privacy,
+    responsible_ai,
 )
 
 app.include_router(auth.router)
@@ -96,6 +107,16 @@ app.include_router(recommendations.router)
 app.include_router(uploads.router)
 app.include_router(admin.router)
 app.include_router(ai.router)
+app.include_router(digital_twin.router)
+app.include_router(simulator.router)
+app.include_router(adaptive_learning.router)
+app.include_router(career_passport_v2.router)
+app.include_router(community.router)
+app.include_router(inclusivity.router)
+app.include_router(employer_intelligence.router)
+app.include_router(government_pilot.router)
+app.include_router(privacy.router)
+app.include_router(responsible_ai.router)
 
 # Global Exception Handlers per Section 21 & 22
 @app.exception_handler(HTTPException)

@@ -144,3 +144,30 @@ def update_application_status(
     db.refresh(app)
 
     return success_response(format_application(app))
+
+@router.post("/api/applications/{application_id}/withdraw")
+def withdraw_application(
+    application_id: str,
+    current_user: Profile = Depends(require_role(["candidate", "admin"])),
+    db: Session = Depends(get_db)
+):
+    cand = current_user.candidate_profile
+    if not cand:
+        return error_response("NOT_CANDIDATE", "Candidate profile required.")
+
+    app = db.query(Application).filter(
+        Application.id == application_id,
+        Application.candidate_id == cand.id
+    ).first()
+
+    if not app:
+        return error_response("APPLICATION_NOT_FOUND", "Application record not found.")
+
+    if app.status in ["withdrawn", "closed"]:
+        return error_response("ALREADY_WITHDRAWN", f"Application is already marked as {app.status}.")
+
+    app.status = "withdrawn"
+    db.commit()
+    db.refresh(app)
+
+    return success_response(format_application(app))

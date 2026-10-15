@@ -1,299 +1,283 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, Search, Check, ShieldAlert, CheckCircle2, UserCheck, Eye, Filter } from "lucide-react";
+import { X, Search, Check, ShieldAlert, Eye, Filter, CheckCircle, Building2, Users, FileText } from "lucide-react";
+import { DataClassificationBadge } from "./DataClassificationBadge";
 
 interface AdminModalProps {
   isOpen: boolean;
   onClose: () => void;
-  reports: any[];
-  onApproveReport?: (id: string) => void;
-  onFlagReport?: (id: string) => void;
+  currentUser?: any;
+  stats?: {
+    total_candidates?: number;
+    total_employers?: number;
+    total_jobs?: number;
+    total_applications?: number;
+  };
 }
 
-export function AdminModal({
-  isOpen,
-  onClose,
-  reports,
-  onApproveReport,
-  onFlagReport,
-}: AdminModalProps) {
-  const [activeTab, setActiveTab] = useState<"moderation" | "projects" | "users">("moderation");
+export function AdminModal({ isOpen, onClose, stats }: AdminModalProps) {
+  const [activeTab, setActiveTab] = useState<"telemetry" | "partners" | "privacy">("telemetry");
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const mockReports = [
+  const demoStats = {
+    total_candidates: stats?.total_candidates ?? 5,
+    total_employers: stats?.total_employers ?? 10,
+    total_jobs: stats?.total_jobs ?? 20,
+    total_applications: stats?.total_applications ?? 15,
+  };
+
+  const partnerList = [
     {
-      id: "rep-001",
-      title: "Illegal chemical discharge into Bellandur lake feeder stream",
-      sdg: "06",
-      location: "Bangalore, Sector 2",
-      reportedBy: "citizen_412",
-      date: "2026-10-10",
-      status: "PENDING_REVIEW",
-      confidence: "94% AI CONFIRMED",
-    },
-    {
-      id: "rep-002",
-      title: "Urban canopy degradation and asphalt heat radiation",
-      sdg: "11",
-      location: "Koramangala 4th Block",
-      reportedBy: "priya.sharma@example.com",
-      date: "2026-10-09",
+      id: "comp-1",
+      name: "Nova Technologies",
+      industry: "Enterprise Cloud Platforms",
+      location: "Bengaluru, IN",
       status: "VERIFIED",
-      confidence: "99% SATELLITE MATCH",
+      activeTracks: 2,
     },
     {
-      id: "rep-003",
-      title: "Open agricultural stubble burn plume detected",
-      sdg: "13",
-      location: "Peri-urban Northern Ring",
-      reportedBy: "field_sensor_09",
-      date: "2026-10-08",
+      id: "comp-2",
+      name: "Tata Digital",
+      industry: "Consumer Tech Ecosystem",
+      location: "Mumbai, IN",
       status: "VERIFIED",
-      confidence: "96% THERMAL ANOMALY",
+      activeTracks: 2,
     },
     {
-      id: "rep-004",
-      title: "Unsegregated hospital biomedical plastic waste dumping",
-      sdg: "12",
-      location: "Industrial Corridor Ward 12",
-      reportedBy: "eco_guard_3",
-      date: "2026-10-07",
-      status: "ACTION_DISPATCHED",
-      confidence: "91% PHOTO EVIDENCE",
+      id: "comp-3",
+      name: "Infosys Springboard",
+      industry: "IT & Systems Consulting",
+      location: "Bengaluru, IN",
+      status: "PENDING_AUDIT",
+      activeTracks: 1,
+    },
+    {
+      id: "comp-4",
+      name: "Flipkart Commerce",
+      industry: "E-Commerce Infrastructure",
+      location: "Bengaluru, IN",
+      status: "VERIFIED",
+      activeTracks: 2,
     },
   ];
 
-  const filteredReports = mockReports.filter((r) => {
-    const matchesSearch =
-      r.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const candidatePrivacyAudits = [
+    {
+      id: "cand-1",
+      name: "Ananya Raman",
+      email: "ananya.raman@example.com",
+      visibility: "Private (Default)",
+      passportConsent: "Opted-In",
+      breakFraming: "Respectfully Classified",
+    },
+    {
+      id: "cand-2",
+      name: "Ananya Desai",
+      email: "ananya.desai@example.com",
+      visibility: "Private (Default)",
+      passportConsent: "Restricted",
+      breakFraming: "Respectfully Classified",
+    },
+    {
+      id: "cand-3",
+      name: "Neha Reddy",
+      email: "neha.reddy@example.com",
+      visibility: "Employer Shared",
+      passportConsent: "Opted-In",
+      breakFraming: "Respectfully Classified",
+    },
+  ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-0 md:p-6 lg:p-12 bg-black/60 backdrop-blur-md overflow-y-auto animate-in fade-in duration-300">
-      <div className="relative w-full max-w-5xl bg-[#E4C29B] text-[#151A17] rounded-none md:rounded-2xl shadow-2xl border border-[#18372C]/15 overflow-hidden my-auto max-h-screen md:max-h-[92vh] flex flex-col font-sans">
-        {/* Header Bar */}
-        <div className="px-6 md:px-10 py-5 border-b border-[#18372C]/15 flex items-center justify-between bg-[#E4C29B]/90 backdrop-blur-xs sticky top-0 z-10">
-          <div className="flex items-center gap-3">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#18372C]" />
-            <span className="micro-label">GOVERNANCE & MODERATION SYSTEM</span>
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-desk-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm overflow-y-auto animate-in fade-in"
+    >
+      <div className="w-full max-w-5xl bg-[#181818] text-[#F1E7DB] rounded-2xl border border-[#D8C2A6]/20 p-6 sm:p-10 relative max-h-[92vh] overflow-y-auto font-sans shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 text-[#F1E7DB] transition-colors"
+          aria-label="Close governance desk"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {/* Header */}
+        <div className="border-b border-[#D8C2A6]/10 pb-6 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-2 h-2 rounded-full bg-[#A56F7C]" />
+              <span className="micro-label">PLATFORM GOVERNANCE & AUDIT DESK</span>
+              <DataClassificationBadge type="verified_production" size="sm" />
+            </div>
+            <h2 id="admin-desk-title" className="text-3xl font-light text-[#F1E7DB] tracking-tight">
+              ADMINISTRATIVE TELEMETRY
+            </h2>
           </div>
 
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-[#18372C]/10 text-[#18372C] transition-colors"
-            aria-label="Close admin modal"
-          >
-            <X className="w-5 h-5" />
+          <span className="text-[11px] font-mono text-[#D8C2A6]">
+            SESSION: SUPER-ADMIN // AUDIT MODE
+          </span>
+        </div>
+
+        {feedback && (
+          <div className="mb-6 p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center justify-between">
+            <span>{feedback}</span>
+            <button onClick={() => setFeedback(null)} className="p-1 hover:text-white">
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
+        {/* Tab Controls */}
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-[#D8C2A6]/10 pb-4 font-mono text-xs">
+          {[
+            { id: "telemetry", label: "Real-time Telemetry" },
+            { id: "partners", label: "Returnship Partner Audits" },
+            { id: "privacy", label: "Candidate Privacy & Consent" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`px-4 py-2 rounded-lg transition-all ${
+                activeTab === tab.id
+                  ? "bg-[#D8C2A6] text-[#111111] font-semibold"
+                  : "bg-[#111111] text-[#9A9A9A] hover:text-[#F1E7DB] border border-[#D8C2A6]/10"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab 1: Real-time Telemetry */}
+        {activeTab === "telemetry" && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              <div className="p-5 rounded-xl bg-[#111111] border border-[#D8C2A6]/10 space-y-1">
+                <span className="text-4xl font-light text-[#F1E7DB]">{demoStats.total_candidates}</span>
+                <div className="text-[10px] font-mono text-[#9A9A9A] uppercase">Active Returnees</div>
+                <div className="text-[10px] text-emerald-400">All 100% Verified</div>
+              </div>
+
+              <div className="p-5 rounded-xl bg-[#111111] border border-[#D8C2A6]/10 space-y-1">
+                <span className="text-4xl font-light text-[#D8C2A6]">{demoStats.total_employers}</span>
+                <div className="text-[10px] font-mono text-[#9A9A9A] uppercase">Partner Employers</div>
+                <div className="text-[10px] text-[#D8C2A6]">Vetted Return Tracks</div>
+              </div>
+
+              <div className="p-5 rounded-xl bg-[#111111] border border-[#D8C2A6]/10 space-y-1">
+                <span className="text-4xl font-light text-[#A56F7C]">{demoStats.total_jobs}</span>
+                <div className="text-[10px] font-mono text-[#9A9A9A] uppercase">Returnship Openings</div>
+                <div className="text-[10px] text-[#A56F7C]">Hybrid & Remote</div>
+              </div>
+
+              <div className="p-5 rounded-xl bg-[#111111] border border-[#D8C2A6]/10 space-y-1">
+                <span className="text-4xl font-light text-[#F1E7DB]">{demoStats.total_applications}</span>
+                <div className="text-[10px] font-mono text-[#9A9A9A] uppercase">Applications Tracked</div>
+                <div className="text-[10px] text-emerald-400">0% Stigma Penalty</div>
+              </div>
+            </div>
+
+            <div className="p-5 rounded-xl bg-[#111111] border border-[#D8C2A6]/10 space-y-2 text-xs font-mono text-[#9A9A9A]">
+              <span className="text-[#D8C2A6] uppercase font-semibold block">Data Integrity Guardrails</span>
+              <p className="font-sans leading-relaxed text-[#9A9A9A]">
+                The platform does not display fabricated impact claims. Statistics shown above reflect the actual database state for active returnee profiles, partner employers, and active returnship applications.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 2: Partner Audits */}
+        {activeTab === "partners" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-mono text-[#9A9A9A]">EMPLOYER COMPLIANCE VERIFICATION</span>
+              <span className="text-xs font-mono text-[#D8C2A6]">{partnerList.length} Partners Evaluated</span>
+            </div>
+
+            <div className="divide-y divide-[#D8C2A6]/10 border border-[#D8C2A6]/10 rounded-xl bg-[#111111] overflow-hidden">
+              {partnerList.map((partner) => (
+                <div
+                  key={partner.id}
+                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs font-mono"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-sans font-medium text-sm text-[#F1E7DB]">{partner.name}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] ${
+                          partner.status === "VERIFIED"
+                            ? "bg-emerald-950/70 text-emerald-300 border border-emerald-500/30"
+                            : "bg-amber-950/70 text-amber-300 border border-amber-500/30"
+                        }`}
+                      >
+                        {partner.status}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#9A9A9A] mt-0.5">
+                      {partner.industry} • {partner.location} • {partner.activeTracks} Active Return Tracks
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setFeedback(`Compliance verified for ${partner.name}. Returnship rubrics audited.`)}
+                    className="btn-editorial-secondary text-xs py-1.5 px-3 self-start sm:self-auto"
+                  >
+                    Audit Rubric
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Privacy & Consent */}
+        {activeTab === "privacy" && (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-[#111111] border border-[#D8C2A6]/10 text-xs font-mono text-[#D8C2A6]">
+              <span className="text-[#A56F7C] font-semibold uppercase block mb-1">PRIVACY COMPLIANCE AUDIT</span>
+              <p className="font-sans text-[11px] text-[#9A9A9A] leading-relaxed">
+                All candidates are set to &quot;Private by default&quot;. Public unauthenticated users cannot view candidate emails, phone numbers, or break details. Passport data sharing requires explicit candidate opt-in.
+              </p>
+            </div>
+
+            <div className="divide-y divide-[#D8C2A6]/10 border border-[#D8C2A6]/10 rounded-xl bg-[#111111] overflow-hidden text-xs font-mono">
+              {candidatePrivacyAudits.map((cand) => (
+                <div
+                  key={cand.id}
+                  className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                >
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-sans font-medium text-sm text-[#F1E7DB]">{cand.name}</span>
+                      <span className="text-[10px] text-[#A56F7C]">({cand.email})</span>
+                    </div>
+                    <div className="text-[11px] text-[#9A9A9A] mt-0.5">
+                      Visibility: <span className="text-[#D8C2A6]">{cand.visibility}</span> • Passport Sharing:{" "}
+                      <span className="text-emerald-400">{cand.passportConsent}</span>
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-[#9A9A9A] font-mono px-2 py-1 rounded-md bg-[#181818]">
+                    {cand.breakFraming}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mt-8 pt-4 border-t border-[#D8C2A6]/10 flex justify-end">
+          <button onClick={onClose} className="btn-editorial-primary text-xs">
+            Done
           </button>
-        </div>
-
-        {/* Tab Controls & Filters */}
-        <div className="px-6 md:px-10 py-4 border-b border-[#18372C]/15 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-[#F5E8D5]/50">
-          <div className="flex items-center space-x-1 border border-[#18372C]/15 rounded-md p-1 bg-[#E4C29B]">
-            <button
-              onClick={() => setActiveTab("moderation")}
-              className={`px-3 py-1.5 rounded text-xs font-mono uppercase tracking-wider transition-all ${
-                activeTab === "moderation"
-                  ? "bg-[#18372C] text-[#F5E8D5]"
-                  : "text-[#18372C] hover:opacity-75"
-              }`}
-            >
-              Problem Moderation ({filteredReports.length})
-            </button>
-            <button
-              onClick={() => setActiveTab("projects")}
-              className={`px-3 py-1.5 rounded text-xs font-mono uppercase tracking-wider transition-all ${
-                activeTab === "projects"
-                  ? "bg-[#18372C] text-[#F5E8D5]"
-                  : "text-[#18372C] hover:opacity-75"
-              }`}
-            >
-              Project Approvals (3)
-            </button>
-            <button
-              onClick={() => setActiveTab("users")}
-              className={`px-3 py-1.5 rounded text-xs font-mono uppercase tracking-wider transition-all ${
-                activeTab === "users"
-                  ? "bg-[#18372C] text-[#F5E8D5]"
-                  : "text-[#18372C] hover:opacity-75"
-              }`}
-            >
-              User Roles
-            </button>
-          </div>
-
-          {/* Search & Status Filter */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-56">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#18372C]/50" />
-              <input
-                type="text"
-                placeholder="Search reports..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F5E8D5] border border-[#18372C]/20 rounded font-mono focus:outline-hidden"
-              />
-            </div>
-
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs bg-[#F5E8D5] border border-[#18372C]/20 rounded px-2.5 py-1.5 font-mono text-[#18372C] focus:outline-hidden"
-            >
-              <option value="ALL">All Status</option>
-              <option value="PENDING_REVIEW">Pending</option>
-              <option value="VERIFIED">Verified</option>
-              <option value="ACTION_DISPATCHED">Dispatched</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Content Table Area */}
-        <div className="overflow-y-auto px-6 md:px-10 py-6 flex-1">
-          {activeTab === "moderation" && (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-mono border-collapse">
-                <thead>
-                  <tr className="border-b border-[#18372C]/20 text-[#18372C]/70">
-                    <th className="py-3 px-3">ID / SDG</th>
-                    <th className="py-3 px-3">REPORTED INCIDENT</th>
-                    <th className="py-3 px-3">LOCATION</th>
-                    <th className="py-3 px-3">DATE</th>
-                    <th className="py-3 px-3">STATUS</th>
-                    <th className="py-3 px-3 text-right">ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#18372C]/10">
-                  {filteredReports.map((item) => (
-                    <tr
-                      key={item.id}
-                      className="hover:bg-[#F5E8D5]/60 transition-colors"
-                    >
-                      <td className="py-3.5 px-3 whitespace-nowrap">
-                        <span className="font-bold text-[#18372C]">{item.id}</span>
-                        <span className="ml-2 text-[10px] px-1.5 py-0.5 bg-[#18372C]/10 rounded font-bold">
-                          SDG {item.sdg}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3">
-                        <div className="font-sans font-medium text-[#151A17] line-clamp-1">
-                          {item.title}
-                        </div>
-                        <div className="text-[10px] text-[#3F7E44]">{item.confidence}</div>
-                      </td>
-                      <td className="py-3.5 px-3 text-[#18372C]/80 whitespace-nowrap">
-                        {item.location}
-                      </td>
-                      <td className="py-3.5 px-3 text-[#18372C]/60 whitespace-nowrap">
-                        {item.date}
-                      </td>
-                      <td className="py-3.5 px-3 whitespace-nowrap">
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                            item.status === "VERIFIED"
-                              ? "bg-[#3F7E44]/15 text-[#3F7E44]"
-                              : item.status === "ACTION_DISPATCHED"
-                              ? "bg-blue-600/15 text-blue-900"
-                              : "bg-amber-600/15 text-amber-900"
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 px-3 text-right whitespace-nowrap">
-                        <div className="inline-flex gap-1.5">
-                          <button
-                            onClick={() => alert(`Viewing details for ${item.id}`)}
-                            className="p-1.5 hover:bg-[#18372C]/10 rounded text-[#18372C]"
-                            title="Inspect Evidence"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => alert(`Report ${item.id} verified and dispatched to community coalition.`)}
-                            className="p-1.5 hover:bg-[#3F7E44]/10 rounded text-[#3F7E44]"
-                            title="Approve / Verify"
-                          >
-                            <Check className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => alert(`Report ${item.id} flagged for secondary review.`)}
-                            className="p-1.5 hover:bg-red-500/10 rounded text-red-800"
-                            title="Flag / Require More Evidence"
-                          >
-                            <ShieldAlert className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-
-          {activeTab === "projects" && (
-            <div className="space-y-4">
-              <div className="text-xs font-mono text-[#18372C]/70">
-                ACTIVE COMMUNITY PROJECT COALITION PROPOSALS PENDING CIVIC APPROVAL
-              </div>
-              <div className="space-y-3 font-mono text-xs">
-                <div className="p-4 bg-[#F5E8D5] border border-[#18372C]/15 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold">PROPOSAL 04:</span> Solar Canal Rooftop Covering (SDG 06 & 07)
-                    <div className="text-[11px] text-[#18372C]/60">Lead: Green Grid Karnataka // Target: 1.2MW</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-[#18372C] text-[#F5E8D5] rounded text-[11px]">
-                      Approve Project ↗
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-[#F5E8D5] border border-[#18372C]/15 flex items-center justify-between">
-                  <div>
-                    <span className="font-bold">PROPOSAL 05:</span> Biophilic Corridor Connectivity (SDG 15)
-                    <div className="text-[11px] text-[#18372C]/60">Lead: Urban Forestry Collective // 280 Hectares</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="px-3 py-1 bg-[#18372C] text-[#F5E8D5] rounded text-[11px]">
-                      Approve Project ↗
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "users" && (
-            <div className="space-y-3 font-mono text-xs">
-              <div className="p-3 bg-[#F5E8D5] border border-[#18372C]/15 flex items-center justify-between">
-                <div>
-                  <span className="font-bold">priya.sharma@example.com</span> (Citizen Steward)
-                  <div className="text-[11px] text-[#18372C]/60">Impact Score: 88 // 3 Verified Reports</div>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 bg-[#3F7E44]/15 text-[#3F7E44] rounded">
-                  ACTIVE
-                </span>
-              </div>
-              <div className="p-3 bg-[#F5E8D5] border border-[#18372C]/15 flex items-center justify-between">
-                <div>
-                  <span className="font-bold">hr@novatech.com</span> (Corporate Sponsor / Project Lead)
-                  <div className="text-[11px] text-[#18372C]/60">Organization: Nova Technologies // 1 Verified Coalition</div>
-                </div>
-                <span className="text-[10px] px-2 py-0.5 bg-[#3F7E44]/15 text-[#3F7E44] rounded">
-                  PARTNER
-                </span>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

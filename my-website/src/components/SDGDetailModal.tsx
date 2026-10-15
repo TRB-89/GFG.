@@ -30,7 +30,7 @@ export function SDGDetailModal({
               className="w-3 h-3 rounded-full"
               style={{ backgroundColor: sdg.color }}
             />
-            <span className="micro-label">SDG {sdg.code} // EDITORIAL DOSSIER</span>
+            <span className="micro-label">SDG {sdg.code} {"//"} EDITORIAL DOSSIER</span>
           </div>
 
           <button

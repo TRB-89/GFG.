@@ -44,7 +44,7 @@ export function ProjectDetailModal({
         <div className="px-6 md:px-10 py-5 border-b border-[#18372C]/15 flex items-center justify-between bg-[#E4C29B]/90 backdrop-blur-xs sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-[#18372C]" />
-            <span className="micro-label">{project.projectCode} // CASE STUDY</span>
+            <span className="micro-label">{project.projectCode} {"//"} CASE STUDY</span>
           </div>
 
           <button
@@ -65,12 +65,12 @@ export function ProjectDetailModal({
                 <MapPin className="w-3.5 h-3.5" />
                 {project.location}
               </span>
-              <span>//</span>
+              <span>{"//"}</span>
               <span className="flex items-center gap-1">
                 <Users className="w-3.5 h-3.5" />
                 {project.contributors} Contributors
               </span>
-              <span>//</span>
+              <span>{"//"}</span>
               <span className="px-2 py-0.5 rounded-full bg-[#18372C]/10 text-[#18372C] font-semibold text-[10px]">
                 {project.status}
               </span>

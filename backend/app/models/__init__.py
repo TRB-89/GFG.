@@ -13,7 +13,7 @@ from backend.app.models.candidate import (
     Recommendation,
 )
 from backend.app.models.company import Company
-from backend.app.models.job import Job, JobSkill
+from backend.app.models.job import Job, JobSkill, SavedOpportunity, JobReport
 from backend.app.models.application import Application
 from backend.app.models.ai import (
     ResumeAnalysis,
@@ -23,6 +23,19 @@ from backend.app.models.ai import (
     JobEmbedding,
     AIRecommendation,
     CareerPassport,
+    PassportAccessGrant,
+    PassportAccessLog,
+    VerificationRecord,
+)
+from backend.app.models.community import (
+    MentorProfile,
+    MentorshipSession,
+    ComebackCircle,
+    CircleMembership,
+    CircleDiscussionPost,
+    InterviewPracticeSession,
+    CommunityModerationReport,
+    UserBlock,
 )
 
 __all__ = [
@@ -49,4 +62,17 @@ __all__ = [
     "JobEmbedding",
     "AIRecommendation",
     "CareerPassport",
+    "PassportAccessGrant",
+    "PassportAccessLog",
+    "VerificationRecord",
+    "SavedOpportunity",
+    "JobReport",
+    "MentorProfile",
+    "MentorshipSession",
+    "ComebackCircle",
+    "CircleMembership",
+    "CircleDiscussionPost",
+    "InterviewPracticeSession",
+    "CommunityModerationReport",
+    "UserBlock",
 ]

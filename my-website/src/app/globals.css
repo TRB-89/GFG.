@@ -208,3 +208,143 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #3A3A3A;
 }
+
+/* ============================================================================
+   MODULE 9 — ACCESSIBILITY (WCAG 2.2 AA), LOCALIZATION & DATA-SAVER MODES
+   ============================================================================ */
+
+/* High Contrast Mode */
+.a11y-high-contrast {
+  --color-bg-primary: #000000 !important;
+  --color-bg-secondary: #0a0a0a !important;
+  --color-bg-surface: #141414 !important;
+  --color-cream-warm: #ffffff !important;
+  --color-border: #ffffff !important;
+  --color-gray-muted: #d0d0d0 !important;
+}
+
+.a11y-high-contrast body {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.a11y-high-contrast * {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.a11y-high-contrast button,
+.a11y-high-contrast a,
+.a11y-high-contrast input,
+.a11y-high-contrast select,
+.a11y-high-contrast textarea {
+  outline: 2px solid transparent;
+}
+
+.a11y-high-contrast button:focus-visible,
+.a11y-high-contrast a:focus-visible,
+.a11y-high-contrast input:focus-visible,
+.a11y-high-contrast select:focus-visible {
+  outline: 3px solid #ffeb3b !important;
+  outline-offset: 3px !important;
+}
+
+/* Visible Keyboard Focus States (WCAG 2.2 AA) */
+:focus-visible {
+  outline: 2px solid #F1E7DB !important;
+  outline-offset: 2px !important;
+}
+
+/* Font Scaling */
+.a11y-text-large {
+  font-size: 112.5% !important;
+}
+
+.a11y-text-large h1 { font-size: 2.75rem !important; }
+.a11y-text-large h2 { font-size: 2rem !important; }
+.a11y-text-large h3 { font-size: 1.5rem !important; }
+
+.a11y-text-xlarge {
+  font-size: 125% !important;
+}
+
+.a11y-text-xlarge h1 { font-size: 3.25rem !important; }
+.a11y-text-xlarge h2 { font-size: 2.35rem !important; }
+.a11y-text-xlarge h3 { font-size: 1.75rem !important; }
+
+/* Reduced Motion Mode */
+.a11y-reduced-motion *,
+.a11y-reduced-motion *::before,
+.a11y-reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Dyslexia-Friendly High-Legibility Font */
+.a11y-dyslexic-font {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Comic Sans MS", sans-serif !important;
+  letter-spacing: 0.04em !important;
+  word-spacing: 0.08em !important;
+  line-height: 1.75 !important;
+}
+
+/* Low-Bandwidth Mode */
+.bandwidth-low .bg-geo-circle,
+.bandwidth-low .bg-geo-arc,
+.bandwidth-low .bg-grid-line-v,
+.bandwidth-low .bg-grid-line-h {
+  display: none !important;
+}
+
+.bandwidth-low {
+  background-image: none !important;
+}
+
+.bandwidth-low img {
+  filter: contrast(105%);
+}
+
+/* Multilingual Typography Adaptations */
+.font-lang-ta {
+  line-height: 1.65;
+  letter-spacing: 0.01em;
+}
+
+.font-lang-ta h1,
+.font-lang-ta h2,
+.font-lang-ta h3 {
+  line-height: 1.35;
+  letter-spacing: normal;
+}
+
+.font-lang-hi {
+  line-height: 1.6;
+  letter-spacing: 0.015em;
+}
+
+.font-lang-hi h1,
+.font-lang-hi h2,
+.font-lang-hi h3 {
+  line-height: 1.35;
+}
+
+/* Skip link for keyboard accessibility */
+.skip-to-content-link {
+  position: absolute;
+  top: -9999px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background-color: #F1E7DB;
+  color: #111111;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 9999px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  transition: top 0.2s ease-in-out;
+}
+
+.skip-to-content-link:focus {
+  top: 1rem;
+}

@@ -26,12 +26,38 @@ import {
   MessageSquare,
   Users,
   Compass,
+  BarChart3,
+  Globe,
 } from "lucide-react";
 import { api } from "@/lib/api";
+import { DEMO_PERSONA, DEMO_METRICS, DEMO_MENTOR, DEMO_EMPLOYER } from "@/lib/demoPersona";
 import { BackgroundGeometry } from "@/components/BackgroundGeometry";
-import { EditorialNavigation } from "@/components/EditorialNavigation";
+import { EditorialNavigation, PlatformRole } from "@/components/EditorialNavigation";
 import { AuthModal } from "@/components/AuthModal";
 import { UserDashboardModal } from "@/components/UserDashboardModal";
+import { DemoModeBanner } from "@/components/DemoModeBanner";
+import { DataClassificationBadge } from "@/components/DataClassificationBadge";
+import { ScoringExplanationModal } from "@/components/ScoringExplanationModal";
+import { MentorshipCommunityModal } from "@/components/MentorshipCommunityModal";
+import { StoryDetailModal } from "@/components/StoryDetailModal";
+import { AlumniDirectoryModal } from "@/components/AlumniDirectoryModal";
+import { AdminModal } from "@/components/AdminModal";
+import { IntelligentOnboardingModal } from "@/components/IntelligentOnboardingModal";
+import { DigitalTwinModal } from "@/components/DigitalTwinModal";
+import { CareerSimulatorModal } from "@/components/CareerSimulatorModal";
+import { AdaptiveRoadmapModal } from "@/components/AdaptiveRoadmapModal";
+import { CareerPassportModal } from "@/components/CareerPassportModal";
+import { SmartOpportunityEngineModal } from "@/components/SmartOpportunityEngineModal";
+import { AccessibilityToolbar } from "@/components/AccessibilityToolbar";
+import { VoiceAssistantModal } from "@/components/VoiceAssistantModal";
+import { EntrepreneurshipHubModal } from "@/components/EntrepreneurshipHubModal";
+import { WorkLifeSupportModal, WorkLifeFilters } from "@/components/WorkLifeSupportModal";
+import EmployerIntelligenceModal from "@/components/EmployerIntelligenceModal";
+import { GovernmentPilotModal } from "@/components/GovernmentPilotModal";
+import { GuidedAssistanceSection } from "@/components/GuidedAssistanceSection";
+import { useTranslation, AiTranslationDisclaimer } from "@/lib/i18n/LanguageContext";
+import { useBandwidth } from "@/lib/bandwidth/BandwidthContext";
+import { useAccessibility } from "@/lib/accessibility/AccessibilityContext";
 
 // Career Comeback Pathways (Section 10)
 const PATHWAYS = [
@@ -123,7 +149,7 @@ const PATHWAYS = [
 
 export default function Home() {
   // Session & Role state
-  const [currentRole, setCurrentRole] = useState<"candidate" | "employer">("candidate");
+  const [currentRole, setCurrentRole] = useState<PlatformRole>("candidate");
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
@@ -136,7 +162,7 @@ export default function Home() {
     id: "job-demo-1",
     title: "Data Analyst Returnship",
     company_name: "Nova Technologies",
-    location: "Bangalore, IN",
+    location: "Bengaluru, IN",
     work_mode: "Hybrid",
     salary_min: 35000,
     compatibility: { match_score: 89 },
@@ -166,43 +192,162 @@ export default function Home() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>(["SQL", "PYTHON", "JAVA", "POWER BI"]);
   const [activePathwayIndex, setActivePathwayIndex] = useState<number>(0);
 
-  // Modals
+  // Modals (including GFG Module 1 Credibility & Transparency Modals)
   const [showPassportModal, setShowPassportModal] = useState<boolean>(false);
   const [passportData, setPassportData] = useState<any>(null);
+  const [passportConsent, setPassportConsent] = useState<boolean>(false);
   const [showJobsModal, setShowJobsModal] = useState<boolean>(false);
   const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
   const [showDashboardModal, setShowDashboardModal] = useState<boolean>(false);
+  const [showScoringModal, setShowScoringModal] = useState<boolean>(false);
+  const [scoringDefaultTab, setScoringDefaultTab] = useState<"readiness" | "matching" | "simulation" | "confidence">("readiness");
+  const [showMentorshipModal, setShowMentorshipModal] = useState<boolean>(false);
+  const [mentorshipInitialTab, setMentorshipInitialTab] = useState<"mentors" | "sessions" | "circles" | "interview" | "safety">("mentors");
+  const [showStoryModal, setShowStoryModal] = useState<boolean>(false);
+  const [showAlumniModal, setShowAlumniModal] = useState<boolean>(false);
+  const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState<boolean>(false);
+  const [showDigitalTwinModal, setShowDigitalTwinModal] = useState<boolean>(false);
+  const [showSimulatorModal, setShowSimulatorModal] = useState<boolean>(false);
   const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
+
+  // Module 9: Inclusivity, Accessibility & Financial Independence State
+  const { t, locale } = useTranslation();
+  const { lowBandwidthMode } = useBandwidth();
+  const { highContrast } = useAccessibility();
+
+  const [showA11yModal, setShowA11yModal] = useState<boolean>(false);
+  const [showVoiceModal, setShowVoiceModal] = useState<boolean>(false);
+  const [showEntrepreneurshipModal, setShowEntrepreneurshipModal] = useState<boolean>(false);
+  const [entrepreneurshipInitialTab, setEntrepreneurshipInitialTab] = useState<"pricing" | "planner" | "expenses" | "proposals" | "sectors">("pricing");
+  const [showWorkLifeModal, setShowWorkLifeModal] = useState<boolean>(false);
+  const [workLifeFilters, setWorkLifeFilters] = useState<WorkLifeFilters>({
+    workMode: "all",
+    partTimeOnly: false,
+    flexibleHoursOnly: false,
+    maxCommuteKm: 25,
+    childcareRequired: false,
+    returnshipCohortOnly: false,
+  });
+
+  // Module 10: Employer Intelligence & Returnship Toolkit
+  const [showEmployerModal, setShowEmployerModal] = useState<boolean>(false);
+  const [employerInitialTab, setEmployerInitialTab] = useState<
+    "dashboard" | "candidates" | "builder" | "toolkit" | "analytics" | "verification"
+  >("dashboard");
+
+  const handleOpenEmployerDesk = (
+    tab: "dashboard" | "candidates" | "builder" | "toolkit" | "analytics" | "verification" = "dashboard"
+  ) => {
+    setEmployerInitialTab(tab);
+    setShowEmployerModal(true);
+  };
+
+  // Module 11: Government Pilot & Impact Analytics
+  const [showGovernmentModal, setShowGovernmentModal] = useState<boolean>(false);
+  const [governmentInitialTab, setGovernmentInitialTab] = useState<
+    "dashboard" | "design" | "schemes" | "sdg" | "reporting" | "presentation"
+  >("dashboard");
+
+  const handleOpenGovernmentPilot = (
+    tab: "dashboard" | "design" | "schemes" | "sdg" | "reporting" | "presentation" = "dashboard"
+  ) => {
+    setGovernmentInitialTab(tab);
+    setShowGovernmentModal(true);
+  };
+
+  const handleGuidedRoute = (action: string) => {
+    switch (action) {
+      case "open_onboarding":
+        setShowOnboardingModal(true);
+        break;
+      case "open_roadmap":
+        handleGenerateRoadmap();
+        break;
+      case "open_opportunities":
+        setShowJobsModal(true);
+        break;
+      case "open_flexible_filter":
+        setShowWorkLifeModal(true);
+        break;
+      case "open_entrepreneurship":
+        setEntrepreneurshipInitialTab("planner");
+        setShowEntrepreneurshipModal(true);
+        break;
+      case "open_mentorship":
+        setMentorshipInitialTab("mentors");
+        setShowMentorshipModal(true);
+        break;
+      default:
+        setShowOnboardingModal(true);
+    }
+  };
+
+  const handleOnboardingSuccess = async () => {
+    setFeedbackMsg({
+      type: "success",
+      text: "Onboarding completed! Your personalized comeback plan is now live.",
+    });
+    await refreshCandidateData();
+    setShowDashboardModal(true);
+  };
 
   // Auto-authenticate as default demo user on mount
   useEffect(() => {
     switchDemoAccount("candidate");
   }, []);
 
-  // Switch demo account helper
-  const switchDemoAccount = async (role: "candidate" | "employer") => {
+  // Switch demo account helper supporting 4 roles
+  const switchDemoAccount = async (role: PlatformRole) => {
     setIsLoading(true);
     setFeedbackMsg(null);
     setCurrentRole(role);
 
     try {
-      const email = role === "candidate" ? "priya.sharma@example.com" : "hr@novatech.com";
+      let email = "ananya.raman@example.com";
+      if (role === "employer") email = "hr@novatech.com";
+      else if (role === "mentor") email = "mentor@gfg.com";
+      else if (role === "admin") email = "admin@gfg.com";
+
       const loginRes = await api.login(email, "Password@123");
       setCurrentUser(loginRes.user);
 
       if (role === "candidate") {
         await refreshCandidateData();
-      } else {
+      } else if (role === "employer") {
         await refreshEmployerData();
       }
     } catch (err: any) {
       console.warn("Using demo session:", err);
-      setCurrentUser({
-        id: role === "candidate" ? "cand-demo-priya" : "emp-demo-nova",
-        full_name: role === "candidate" ? "Priya Sharma" : "Nova Tech HR",
-        email: role === "candidate" ? "priya.sharma@example.com" : "hr@novatech.com",
-        account_type: role,
-      });
+      if (role === "candidate") {
+        setCurrentUser({
+          id: DEMO_PERSONA.id,
+          full_name: DEMO_PERSONA.full_name,
+          email: DEMO_PERSONA.email,
+          role: "candidate",
+        });
+      } else if (role === "employer") {
+        setCurrentUser({
+          id: DEMO_EMPLOYER.id,
+          full_name: "Nova Tech HR",
+          email: "hr@novatech.com",
+          role: "employer",
+        });
+      } else if (role === "mentor") {
+        setCurrentUser({
+          id: DEMO_MENTOR.id,
+          full_name: DEMO_MENTOR.name,
+          email: "mentor@gfg.com",
+          role: "mentor",
+        });
+      } else {
+        setCurrentUser({
+          id: "admin-gfg-01",
+          full_name: "Platform Administrator",
+          email: "admin@gfg.com",
+          role: "admin",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -226,8 +371,8 @@ export default function Home() {
       if (read) setReadinessData(read);
       if (aiJobs && aiJobs.length > 0) setAiMatches(aiJobs);
 
-      if (prof?.available_hours_per_day) {
-        setAvailableHours(prof.available_hours_per_day);
+      if ((prof as any)?.available_hours_per_day) {
+        setAvailableHours((prof as any).available_hours_per_day);
       }
 
       // Pick Data Analyst Returnship by Nova Technologies as the default featured job
@@ -323,26 +468,9 @@ export default function Home() {
     }
   };
 
-  // Module 3: AI Roadmap Generator
-  const handleGenerateRoadmap = async () => {
-    setIsGeneratingRoadmap(true);
-    setFeedbackMsg(null);
-    try {
-      const road = await api.getRoadmap("Data Analyst", availableHours);
-      setRoadmapData(road);
-      setShowRoadmapModal(true);
-      setFeedbackMsg({
-        type: "success",
-        text: `Personalized ${road.estimated_weeks || 8}-week roadmap generated for ${availableHours} hrs/day.`,
-      });
-    } catch (err: any) {
-      setFeedbackMsg({
-        type: "error",
-        text: err.message || "Failed to generate learning roadmap.",
-      });
-    } finally {
-      setIsGeneratingRoadmap(false);
-    }
+  // Module 5: Adaptive Career Learning Engine
+  const handleGenerateRoadmap = () => {
+    setShowRoadmapModal(true);
   };
 
   // Module 3: "What if I learn this skill?" Simulation
@@ -425,20 +553,54 @@ export default function Home() {
       {/* Background Architectural Geometry (Section 7) */}
       <BackgroundGeometry />
 
-      {/* Minimal Editorial Navigation (Section 5) */}
+      {/* Global Demonstration Environment Banner (Task 2) */}
+      <DemoModeBanner
+        onOpenPolicyModal={() => {
+          setScoringDefaultTab("readiness");
+          setShowScoringModal(true);
+        }}
+      />
+
+      {/* Minimal Editorial Navigation (Section 5 & Module 9) */}
       <EditorialNavigation
         currentUser={currentUser}
         currentRole={currentRole}
         onOpenAuth={() => setShowAuthModal(true)}
-        onOpenDashboard={() => setShowDashboardModal(true)}
+        onOpenDashboard={() => {
+          if (currentRole === "employer") {
+            handleOpenEmployerDesk("dashboard");
+          } else {
+            setShowDashboardModal(true);
+          }
+        }}
         onOpenPassport={handleOpenPassport}
+        onOpenAdmin={() => setShowAdminModal(true)}
+        onOpenOnboarding={() => setShowOnboardingModal(true)}
+        onOpenDigitalTwin={() => setShowDigitalTwinModal(true)}
+        onOpenSimulator={() => setShowSimulatorModal(true)}
+        onOpenRoadmap={handleGenerateRoadmap}
+        onOpenCommunity={(tab) => {
+          setMentorshipInitialTab(tab || "mentors");
+          setShowMentorshipModal(true);
+        }}
+        onOpenA11y={() => setShowA11yModal(true)}
+        onOpenVoice={() => setShowVoiceModal(true)}
+        onOpenEntrepreneurship={() => {
+          setEntrepreneurshipInitialTab("pricing");
+          setShowEntrepreneurshipModal(true);
+        }}
+        onOpenWorkLife={() => setShowWorkLifeModal(true)}
+        onOpenEmployerDesk={handleOpenEmployerDesk}
+        onOpenGovernmentPilot={handleOpenGovernmentPilot}
         onSwitchRole={switchDemoAccount}
       />
+
+      <main id="main-content" tabIndex={-1} className="focus:outline-none">
 
       {/* Notification Toast Strip */}
       {feedbackMsg && (
         <div
-          className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 py-3 px-6 rounded-full border flex items-center gap-3 text-xs tracking-wider uppercase backdrop-blur-md shadow-lg transition-all animate-in fade-in ${
+          className={`fixed top-28 left-1/2 -translate-x-1/2 z-50 py-3 px-6 rounded-full border flex items-center gap-3 text-xs tracking-wider uppercase backdrop-blur-md shadow-lg transition-all animate-in fade-in ${
             feedbackMsg.type === "success"
               ? "bg-[#181818]/95 border-[#D8C2A6]/40 text-[#F1E7DB]"
               : "bg-red-950/90 border-red-500/40 text-red-200"
@@ -469,10 +631,12 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center my-auto">
           {/* LEFT SIDE: Confident Editorial Typography */}
           <div className="lg:col-span-7 space-y-8 lg:pr-8">
-            {/* Micro label */}
-            <div className="flex items-center gap-3">
+            {/* Micro label with Data Classification & AI Translation Disclaimer */}
+            <div className="flex flex-wrap items-center gap-3">
               <span className="w-2 h-2 rounded-full bg-[#A56F7C]" />
               <span className="micro-label">01 / BEGIN AGAIN // GFG PLATFORM</span>
+              <DataClassificationBadge type="simulated_demonstration" size="sm" />
+              <AiTranslationDisclaimer />
             </div>
 
             {/* Headline: RETURN. REBUILD. RISE. */}
@@ -484,25 +648,36 @@ export default function Home() {
 
             {/* Supporting description */}
             <p className="text-base sm:text-lg text-[#9A9A9A] max-w-xl font-normal leading-relaxed">
-              A career comeback platform designed to help women rebuild skills, regain confidence,
-              and return to meaningful work after a career break.
+              {t("hero.subtitle")}
             </p>
 
-            {/* Small elegant CTAs (Section 6 & 25) */}
-            <div className="pt-4 flex flex-wrap items-center gap-4">
-              <button
-                onClick={handleAnalyzeCareer}
+            {/* Small elegant CTAs (Section 6 & 25 & Module 9) */}
+            <div className="pt-4 flex flex-wrap items-center gap-3 sm:gap-4">
+              <a
+                href="#guided-assistance"
                 className="btn-editorial-primary"
               >
-                <span>Start Your Comeback</span>
+                <span>{t("hero.cta_primary")}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
+              </a>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEntrepreneurshipInitialTab("pricing");
+                  setShowEntrepreneurshipModal(true);
+                }}
+                className="btn-editorial-rose"
+              >
+                <span>{t("hero.cta_entrepreneurship")}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
 
               <a
                 href="#pathways"
                 className="btn-editorial-secondary"
               >
-                <span>Explore Pathways</span>
+                <span>{t("hero.cta_secondary")}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </a>
             </div>
@@ -576,6 +751,11 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ============================================================ */}
+      {/* PART 7: TELL US WHAT YOU NEED (Guided Assistance Module 9)   */}
+      {/* ============================================================ */}
+      <GuidedAssistanceSection onRoute={handleGuidedRoute} />
 
       {/* ============================================================ */}
       {/* 9. STATEMENT: YOUR BREAK DOES NOT DEFINE YOUR CAREER          */}
@@ -962,24 +1142,38 @@ export default function Home() {
       >
         <div className="border-b border-[#D8C2A6]/10 pb-8 mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">
-              {currentRole === "candidate" ? "CANDIDATE INTELLIGENCE" : "EMPLOYER RECRUITER DESK"}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">
+                {currentRole === "candidate" ? "CANDIDATE INTELLIGENCE" : "EMPLOYER RECRUITER DESK"}
+              </span>
+              <DataClassificationBadge classification="simulated" label="SAMPLE PERSONA DATA" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               WELCOME BACK. <br />
               <span className="text-[#D8C2A6] italic font-serif">
-                {currentRole === "candidate" ? "LET'S CONTINUE YOUR COMEBACK." : "NOVA TECHNOLOGIES."}
+                {currentRole === "candidate"
+                  ? `${(currentUser?.full_name || DEMO_PERSONA.full_name).toUpperCase()}.`
+                  : "NOVA TECHNOLOGIES."}
               </span>
             </h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <button
               onClick={() => switchDemoAccount(currentRole === "candidate" ? "employer" : "candidate")}
               className="btn-editorial-secondary text-xs"
             >
-              <span>Switch to {currentRole === "candidate" ? "Nova Tech (Employer)" : "Priya (Candidate)"}</span>
+              <span>Switch to {currentRole === "candidate" ? "Nova Tech (Employer)" : "Ananya (Candidate)"}</span>
               <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => {
+                setScoringDefaultTab("readiness");
+                setShowScoringModal(true);
+              }}
+              className="px-3 py-1.5 rounded-lg border border-[#D8C2A6]/20 bg-[#181818] text-[#D8C2A6] hover:bg-[#222222] text-xs font-mono transition-colors"
+            >
+              How are scores calculated?
             </button>
           </div>
         </div>
@@ -987,18 +1181,44 @@ export default function Home() {
         {/* Calm Big Numbers Grid (Section 13) */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-6">
           <div className="space-y-1">
-            <span className="text-5xl md:text-6xl font-light text-[#F1E7DB] tracking-tight">
-              {readinessData?.readiness_score || 82}%
-            </span>
-            <div className="micro-label-muted">CAREER READINESS</div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-5xl md:text-6xl font-light text-[#F1E7DB] tracking-tight">
+                {readinessData?.readiness_score || 82}%
+              </span>
+            </div>
+            <div className="micro-label-muted flex items-center justify-between">
+              <span>CAREER READINESS</span>
+              <button
+                onClick={() => {
+                  setScoringDefaultTab("readiness");
+                  setShowScoringModal(true);
+                }}
+                className="text-[10px] text-[#A56F7C] underline hover:text-[#D8C2A6] font-mono lowercase"
+              >
+                disclosure
+              </button>
+            </div>
             <p className="text-xs text-[#9A9A9A]">Top tier • Returnship qualified</p>
           </div>
 
           <div className="space-y-1">
-            <span className="text-5xl md:text-6xl font-light text-[#D8C2A6] tracking-tight">
-              {isSimulated ? (simulationResult?.projected_score || 94) : 87}%
-            </span>
-            <div className="micro-label-muted">TOP MATCH SCORE</div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-5xl md:text-6xl font-light text-[#D8C2A6] tracking-tight">
+                {isSimulated ? (simulationResult?.projected_score || 94) : 89}%
+              </span>
+            </div>
+            <div className="micro-label-muted flex items-center justify-between">
+              <span>TOP MATCH SCORE</span>
+              <button
+                onClick={() => {
+                  setScoringDefaultTab("matching");
+                  setShowScoringModal(true);
+                }}
+                className="text-[10px] text-[#A56F7C] underline hover:text-[#D8C2A6] font-mono lowercase"
+              >
+                disclosure
+              </button>
+            </div>
             <p className="text-xs text-[#9A9A9A]">Nova Technologies Data Track</p>
           </div>
 
@@ -1007,7 +1227,7 @@ export default function Home() {
               03
             </span>
             <div className="micro-label-muted">MENTOR SESSIONS</div>
-            <p className="text-xs text-[#9A9A9A]">1 Upcoming this week</p>
+            <p className="text-xs text-[#9A9A9A]">1 Upcoming with Dr. Meera Iyer</p>
           </div>
 
           <div className="space-y-1">
@@ -1022,22 +1242,39 @@ export default function Home() {
         {/* Next Recommended Action Card */}
         <div className="mt-8 p-6 rounded-xl bg-[#181818] border border-[#D8C2A6]/15 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span className="micro-label text-[#A56F7C] block mb-1">NEXT RECOMMENDED ACTION</span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="micro-label text-[#A56F7C]">NEXT RECOMMENDED ACTION</span>
+              <DataClassificationBadge classification="simulated" label="ACTION TARGET" />
+            </div>
             <div className="text-base text-[#F1E7DB] font-medium">
               Review Capstone Project & Export Verified Career Continuity Passport
             </div>
-            <div className="text-xs text-[#9A9A9A] mt-0.5">
-              Tenure verified: 4.5 Years Software Eng • 14 Months Maternity Pause
+            <div className="text-xs text-[#9A9A9A] mt-0.5 font-mono">
+              Tenure: {DEMO_METRICS.preBreakFormatted} ({DEMO_PERSONA.past_experience}) • Pause: {DEMO_METRICS.breakDurationFormatted} ({DEMO_PERSONA.break_reason})
             </div>
           </div>
 
-          <button
-            onClick={handleOpenPassport}
-            className="btn-editorial-primary text-xs shrink-0 self-start sm:self-auto"
-          >
-            <span>View Passport Protocol</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-auto">
+            <button
+              onClick={() => setShowDigitalTwinModal(true)}
+              className="btn-editorial-secondary text-xs border-blue-500/30 text-blue-200 hover:border-blue-400"
+            >
+              <span>AI Digital Twin ↗</span>
+            </button>
+            <button
+              onClick={() => setShowSimulatorModal(true)}
+              className="btn-editorial-secondary text-xs border-cyan-500/30 text-cyan-200 hover:border-cyan-400"
+            >
+              <span>Future Simulator ↗</span>
+            </button>
+            <button
+              onClick={handleOpenPassport}
+              className="btn-editorial-primary text-xs"
+            >
+              <span>View Passport Protocol</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </section>
 
@@ -1050,40 +1287,50 @@ export default function Home() {
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">INTELLIGENCE // SYNTHESIS</span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">INTELLIGENCE // SYNTHESIS</span>
+              <DataClassificationBadge classification="simulated" label="AI INFERENCE" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               AI CAREER RECOMMENDATION.
             </h2>
           </div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#D8C2A6]">
+          <button
+            onClick={() => {
+              setScoringDefaultTab("confidence");
+              setShowScoringModal(true);
+            }}
+            className="flex items-center gap-2 text-xs font-mono text-[#D8C2A6] hover:text-white px-3 py-1.5 rounded-lg border border-[#D8C2A6]/20 bg-[#181818]"
+          >
             <span className="w-2 h-2 rounded-full bg-[#A56F7C]" />
             <span>CONFIDENCE: HIGH MATCH (88.4%)</span>
-          </div>
+            <span className="text-[10px] text-[#A56F7C] underline ml-1 font-sans">Method</span>
+          </button>
         </div>
 
         {/* Structured Recommendation Blocks (Section 14) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="p-6 rounded-xl bg-[#181818]/60 border border-[#D8C2A6]/10 space-y-3">
             <span className="micro-label text-[#9A9A9A]">YOUR PROFILE</span>
-            <div className="text-xl font-light text-[#F1E7DB]">Priya Sharma</div>
+            <div className="text-xl font-light text-[#F1E7DB]">{DEMO_PERSONA.full_name}</div>
             <p className="text-xs text-[#9A9A9A] leading-relaxed">
-              4.5 years software engineering background. Core strength in Java, SQL, and database indexing.
+              {DEMO_METRICS.preBreakFormatted} in {DEMO_PERSONA.past_experience}. Core strength in SQL, Python, and statistical ETL pipelines.
             </p>
           </div>
 
           <div className="p-6 rounded-xl bg-[#181818]/60 border border-[#D8C2A6]/10 space-y-3">
             <span className="micro-label text-[#A56F7C]">CAREER GAP CONTEXT</span>
-            <div className="text-xl font-light text-[#F1E7DB]">14 Months Pause</div>
+            <div className="text-xl font-light text-[#F1E7DB]">{DEMO_METRICS.breakDurationFormatted} ({DEMO_METRICS.breakDurationMonths} Mo) Pause</div>
             <p className="text-xs text-[#9A9A9A] leading-relaxed">
-              Maternity sabbatical classified neutrally with zero career-depreciation penalty.
+              {DEMO_PERSONA.break_reason} classified with zero tenure-depreciation penalty in scoring models.
             </p>
           </div>
 
           <div className="p-6 rounded-xl bg-[#181818]/60 border border-[#D8C2A6]/10 space-y-3">
             <span className="micro-label text-[#D8C2A6]">RECOMMENDED PATH</span>
-            <div className="text-xl font-light text-[#F1E7DB]">Data Analyst Track</div>
+            <div className="text-xl font-light text-[#F1E7DB]">{DEMO_PERSONA.target_role} Track</div>
             <p className="text-xs text-[#9A9A9A] leading-relaxed">
-              Pivoting logic into business intelligence, KPI decks, and SQL analytics pipelines.
+              Pivoting algorithmic data manipulation into corporate BI, executive dashboards, and SQL analytics.
             </p>
           </div>
 
@@ -1098,6 +1345,58 @@ export default function Home() {
             </button>
           </div>
         </div>
+
+        {/* AI Career Digital Twin Intelligence Banner */}
+        <div className="mt-8 p-6 sm:p-8 rounded-2xl bg-[#181818] border border-blue-500/25 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-400" />
+              <span className="micro-label text-blue-300 font-mono">03 // AI CAREER DIGITAL TWIN</span>
+              <span className="px-2 py-0.5 rounded text-[10px] bg-blue-950 text-blue-300 border border-blue-500/30">
+                DYNAMIC REASONING ENGINE
+              </span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-light text-[#F1E7DB]">
+              Your Personal Career-Planning Intelligence Model
+            </h3>
+            <p className="text-xs text-[#9A9A9A] leading-relaxed">
+              Inspect your 4-tier skill provenance inventory, verified industry gap benchmark against 5 occupations, explainable pathway matching, and interactive accessible Career Knowledge Graph.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowDigitalTwinModal(true)}
+            className="btn-editorial-primary text-xs py-3 px-6 shrink-0 bg-blue-600 hover:bg-blue-500 border-blue-400 text-white flex items-center gap-2"
+          >
+            <span>Launch Digital Twin</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* AI Career Future Simulator Spotlight Banner (Module 4) */}
+        <div className="mt-4 p-6 sm:p-8 rounded-2xl bg-[#181818] border border-cyan-500/25 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400" />
+              <span className="micro-label text-cyan-300 font-mono">04 // AI CAREER FUTURE SIMULATOR</span>
+              <span className="px-2 py-0.5 rounded text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+                SCENARIO MODELING & OUTCOMES
+              </span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-light text-[#F1E7DB]">
+              "What could change in my career if I take this step?"
+            </h3>
+            <p className="text-xs text-[#9A9A9A] leading-relaxed">
+              Explore interactive split-screen projections across 7 scenarios: learn skills like Power BI, earn accredited certifications, pivot industries, adjust weekly hours, or start short-term returnships.
+            </p>
+          </div>
+          <button
+            onClick={() => setShowSimulatorModal(true)}
+            className="btn-editorial-primary text-xs py-3 px-6 shrink-0 bg-cyan-600 hover:bg-cyan-500 border-cyan-400 text-white flex items-center gap-2"
+          >
+            <span>Launch Career Simulator</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
       </section>
 
       {/* ============================================================ */}
@@ -1109,7 +1408,10 @@ export default function Home() {
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">MENTOR / AVAILABLE</span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">MENTOR / AVAILABLE</span>
+              <DataClassificationBadge classification="simulated" label="SAMPLE MENTOR PROFILE" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               GUIDED MENTORSHIP.
             </h2>
@@ -1124,7 +1426,7 @@ export default function Home() {
           <div className="lg:col-span-5 relative aspect-[3/4] max-w-sm mx-auto rounded-xl overflow-hidden border border-[#D8C2A6]/20">
             <Image
               src="/images/editorial-mentor.jpg"
-              alt="Mentor Priya S."
+              alt={`Mentor ${DEMO_MENTOR.name}`}
               fill
               className="object-cover object-center grayscale contrast-110"
               sizes="(max-width: 768px) 100vw, 400px"
@@ -1133,38 +1435,60 @@ export default function Home() {
 
           <div className="lg:col-span-7 space-y-6">
             <div className="space-y-1">
-              <span className="micro-label text-[#A56F7C]">MENTOR / 08</span>
+              <span className="micro-label text-[#A56F7C]">MENTOR // VERIFIED GUIDE</span>
               <h3 className="text-3xl sm:text-5xl font-light text-[#F1E7DB] tracking-tight">
-                PRIYA S.
+                {DEMO_MENTOR.name.toUpperCase()}
               </h3>
               <div className="text-sm font-mono text-[#D8C2A6] uppercase tracking-wider">
-                PRODUCT MANAGER • 12 YEARS EXPERIENCE
+                {DEMO_MENTOR.title.toUpperCase()}
               </div>
             </div>
 
             <p className="text-base text-[#9A9A9A] leading-relaxed font-light">
-              &ldquo;Specialized in guiding female engineers returning to tech and leadership after multi-year career breaks.
-              We calibrate your narrative, negotiate compensation from a place of verified merit, and remove the impostor syndrome.&rdquo;
+              &ldquo;{DEMO_MENTOR.bio}&rdquo;
             </p>
 
             <div className="grid grid-cols-2 gap-4 py-4 border-y border-[#D8C2A6]/10 font-mono text-xs">
               <div>
                 <span className="text-[#9A9A9A] block">ALUMNA</span>
-                <span className="text-[#F1E7DB]">Ex-Google, Microsoft</span>
+                <span className="text-[#F1E7DB]">{DEMO_MENTOR.alumna}</span>
               </div>
               <div>
                 <span className="text-[#9A9A9A] block">COMEBACK COHORT</span>
-                <span className="text-[#A56F7C]">34 Professionals Mentored</span>
+                <span className="text-[#A56F7C]">{DEMO_MENTOR.stats}</span>
               </div>
             </div>
 
-            <div className="pt-2 flex items-center gap-4">
+            <div className="pt-2 flex flex-wrap items-center gap-3">
               <button
-                onClick={() => alert("Connecting with Priya S. for 1-on-1 mentorship session...")}
+                onClick={() => {
+                  setMentorshipInitialTab("mentors");
+                  setShowMentorshipModal(true);
+                }}
                 className="btn-editorial-primary text-xs"
               >
-                <span>Book Mentor Session</span>
+                <span>Find a Mentor (Directory & Matching)</span>
                 <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => {
+                  setMentorshipInitialTab("circles");
+                  setShowMentorshipModal(true);
+                }}
+                className="btn-editorial-secondary text-xs border-emerald-500/30 text-emerald-300 hover:border-emerald-400"
+              >
+                <Users className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Comeback Circles (Peer Cohorts)</span>
+              </button>
+              <button
+                onClick={() => {
+                  setMentorshipInitialTab("interview");
+                  setShowMentorshipModal(true);
+                }}
+                className="btn-editorial-secondary text-xs border-sky-500/30 text-sky-200 hover:border-sky-400"
+              >
+                <Brain className="w-3.5 h-3.5 text-sky-400" />
+                <span>AI Interview Practice</span>
               </button>
             </div>
           </div>
@@ -1180,18 +1504,32 @@ export default function Home() {
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">OPPORTUNITY / MATCHED</span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">OPPORTUNITY / MATCHED</span>
+              <DataClassificationBadge classification="simulated" label="SAMPLE OPPORTUNITY" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               DISCOVER OPPORTUNITIES.
             </h2>
           </div>
-          <button
-            onClick={() => setShowJobsModal(true)}
-            className="btn-editorial-secondary text-xs"
-          >
-            <span>View Full Directory ({jobs.length})</span>
-            <ChevronRight className="w-3.5 h-3.5" />
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              onClick={() => handleOpenEmployerDesk("dashboard")}
+              className="px-4 py-2 rounded-full bg-[#2A1E22] hover:bg-[#38262C] text-[#E7C1C9] border border-[#523A40] text-xs font-mono uppercase tracking-wider transition-all flex items-center gap-1.5"
+              title="Launch Module 10 Employer Intelligence Desk"
+            >
+              <Building2 className="w-3.5 h-3.5 text-[#E7C1C9]" />
+              <span>Recruiter Desk & Toolkit</span>
+            </button>
+            <button
+              onClick={() => setShowJobsModal(true)}
+              className="btn-editorial-secondary text-xs"
+            >
+              <span>View Full Directory ({jobs.length})</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Clean Vertical Opportunity Feed (Section 16: Not dense card grids) */}
@@ -1203,7 +1541,7 @@ export default function Home() {
                   id: "job-1",
                   title: "Data Analyst Returnship",
                   company_name: "Nova Technologies",
-                  location: "Bangalore",
+                  location: "Bengaluru, IN",
                   work_mode: "Hybrid",
                   compatibility: { match_score: 89 },
                 },
@@ -1229,13 +1567,19 @@ export default function Home() {
                   </h3>
 
                   <div className="text-xs font-mono text-[#9A9A9A] flex items-center gap-4">
-                    <span>{job.location || "Bangalore, IN"}</span>
+                    <span>{job.location || "Bengaluru, IN"}</span>
                     <span>•</span>
                     <span>{job.work_mode?.toUpperCase() || "REMOTE"}</span>
                     <span>•</span>
-                    <span className="text-[#D8C2A6]">
-                      Match: {job.compatibility?.match_score || 89}%
-                    </span>
+                    <button
+                      onClick={() => {
+                        setScoringDefaultTab("matching");
+                        setShowScoringModal(true);
+                      }}
+                      className="text-[#D8C2A6] hover:underline"
+                    >
+                      Match: {job.compatibility?.match_score || 89}% ⓘ
+                    </button>
                   </div>
                 </div>
 
@@ -1284,18 +1628,32 @@ export default function Home() {
         <div className="p-8 md:p-12 rounded-2xl bg-[#181818]/60 border border-[#D8C2A6]/15 space-y-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#D8C2A6]/10 pb-6">
             <div>
-              <span className="micro-label text-[#A56F7C]">EMPLOYER VERIFIED PARTNER</span>
+              <div className="flex items-center gap-3 mb-1">
+                <span className="micro-label text-[#A56F7C]">PILOT EMPLOYER PARTNER</span>
+                <DataClassificationBadge classification="simulated" label="SAMPLE PROFILE" />
+              </div>
               <h3 className="text-3xl sm:text-5xl font-light text-[#F1E7DB] tracking-tight">
-                NOVA TECHNOLOGIES
+                {DEMO_EMPLOYER.name.toUpperCase()}
               </h3>
               <p className="text-xs text-[#9A9A9A] font-mono mt-1">
-                Global Cloud Infrastructure & Data Systems
+                {DEMO_EMPLOYER.industry}
               </p>
             </div>
 
             <div className="text-left md:text-right">
-              <span className="text-3xl font-light text-[#D8C2A6]">96 / 100</span>
+              <div className="flex items-baseline justify-end gap-2">
+                <span className="text-3xl font-light text-[#D8C2A6]">{DEMO_EMPLOYER.breakFriendlyScore} / 100</span>
+              </div>
               <div className="micro-label-muted text-[10px]">CAREER BREAK FRIENDLY SCORE</div>
+              <button
+                onClick={() => {
+                  setScoringDefaultTab("matching");
+                  setShowScoringModal(true);
+                }}
+                className="text-[10px] text-[#A56F7C] underline hover:text-[#D8C2A6] font-mono mt-1 block"
+              >
+                Rubric: 4 Verified Pillars
+              </button>
             </div>
           </div>
 
@@ -1329,14 +1687,14 @@ export default function Home() {
               {[
                 {
                   id: "app-1",
-                  name: "Priya Sharma",
-                  gap: "14 Mo Maternity Break",
-                  exp: "4.5 Yrs (Software Eng)",
-                  score: 87,
+                  name: DEMO_PERSONA.full_name,
+                  gap: `${DEMO_METRICS.breakDurationFormatted} (${DEMO_METRICS.breakDurationMonths} Mo) Family Leadership`,
+                  exp: `${DEMO_METRICS.preBreakFormatted} (${DEMO_PERSONA.past_experience})`,
+                  score: 89,
                 },
                 {
                   id: "app-2",
-                  name: "Ananya Roy",
+                  name: "Pooja Hegde",
                   gap: "18 Mo Elder Care Break",
                   exp: "5.0 Yrs (QA Automation)",
                   score: 84,
@@ -1389,7 +1747,10 @@ export default function Home() {
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">STORIES / 06 // CINEMATIC PROOF</span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">STORIES / 06 // CINEMATIC PROOF</span>
+              <DataClassificationBadge classification="simulated" label="EDITORIAL CASE STUDY" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               REAL COMEBACK STORIES.
             </h2>
@@ -1446,7 +1807,7 @@ export default function Home() {
 
             <div className="pt-2">
               <button
-                onClick={() => alert("Opening full editorial interview with Elena...")}
+                onClick={() => setShowStoryModal(true)}
                 className="btn-editorial-secondary text-xs"
               >
                 <span>Read Her Story →</span>
@@ -1465,7 +1826,10 @@ export default function Home() {
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">VERIFICATION // CONTINUITY</span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">VERIFICATION // CONTINUITY</span>
+              <DataClassificationBadge classification="simulated" label="SAMPLE TIMELINE" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               CAREER TIMELINE.
             </h2>
@@ -1483,35 +1847,35 @@ export default function Home() {
         <div className="relative pl-6 md:pl-10 space-y-10 border-l border-[#D8C2A6]/20 max-w-3xl">
           {[
             {
-              year: "2018",
-              title: "Software Engineer",
-              company: "Global Services Tech",
-              note: "4.5 Years tenure. Core backend Java and SQL.",
+              year: "2018 – 2022",
+              title: "Data Analyst",
+              company: "Enterprise Information Systems",
+              note: `${DEMO_METRICS.preBreakFormatted} verified tenure. SQL reporting, ETL pipelines, and data warehouse modeling.`,
             },
             {
-              year: "2021",
+              year: "2022 – 2025",
               title: "Career Break",
-              company: "Maternity & Family Leadership",
-              note: "14-Month intentional pause. Full tenure credited and preserved.",
+              company: "Family Leadership & Caregiving",
+              note: `${DEMO_METRICS.breakDurationFormatted} (${DEMO_METRICS.breakDurationMonths} Months) intentional pause. Preserved tenure with zero algorithmic penalty.`,
               isBreak: true,
             },
             {
-              year: "2024",
+              year: "2025",
               title: "Skill Rebuilding",
               company: "GFG Calibrated Learning Track",
-              note: "Mastered Power BI, Python Pandas, and Advanced SQL.",
+              note: "Completed Power BI executive dashboards, Advanced SQL CTEs, and Python Pandas.",
             },
             {
               year: "2025",
-              title: "Return-to-Work Journey",
+              title: "Returnship Cohort",
               company: "Nova Technologies Returnship",
-              note: "Hybrid Data Analyst track with dedicated mentorship.",
+              note: "4-Month paid return cohort with dedicated mentorship under Dr. Meera Iyer.",
             },
             {
               year: "2026",
-              title: "Target Role",
-              company: "Senior Data & Analytics Specialist",
-              note: "Transitioning back into full engineering leadership.",
+              title: "Target Placement",
+              company: "Lead Data Analytics Consultant",
+              note: "Secured high-flexibility role with full tenure recognition.",
             },
           ].map((item) => (
             <div key={item.year} className="relative">
@@ -1545,13 +1909,16 @@ export default function Home() {
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
           <div className="space-y-2">
-            <span className="micro-label text-[#A56F7C]">COALITION // CIRCLES</span>
+            <div className="flex items-center gap-3">
+              <span className="micro-label text-[#A56F7C]">COALITION // CIRCLES</span>
+              <DataClassificationBadge classification="actual" label="ACTIVE DIRECTORY" />
+            </div>
             <h2 className="text-4xl sm:text-6xl font-light tracking-tight text-[#F1E7DB]">
               CURATED COMMUNITY.
             </h2>
           </div>
           <span className="text-xs font-mono uppercase tracking-widest text-[#9A9A9A]">
-            HIGH-SIGNAL PEER EXCHANGES
+            AUTHENTIC PILOT PROFILES
           </span>
         </div>
 
@@ -1578,15 +1945,28 @@ export default function Home() {
             </span>
           </div>
 
-          <div className="p-8 rounded-xl bg-[#181818]/60 border border-[#D8C2A6]/10 space-y-4">
-            <span className="micro-label text-[#D8C2A6]">COMEBACK SPOTLIGHT</span>
-            <h4 className="text-xl font-medium text-[#F1E7DB]">Returnee Alumni Directory</h4>
+          <div
+            onClick={() => setShowAlumniModal(true)}
+            className="p-8 rounded-xl bg-[#181818]/60 border border-[#D8C2A6]/10 space-y-4 cursor-pointer hover:border-[#D8C2A6]/40 transition-all group"
+          >
+            <div className="flex items-center justify-between">
+              <span className="micro-label text-[#D8C2A6]">COMEBACK SPOTLIGHT</span>
+              <span className="text-xs text-[#A56F7C] group-hover:translate-x-0.5 transition-transform">Browse →</span>
+            </div>
+            <h4 className="text-xl font-medium text-[#F1E7DB] group-hover:text-[#D8C2A6] transition-colors">
+              Returnee Alumni Directory
+            </h4>
             <p className="text-xs text-[#9A9A9A] leading-relaxed font-light">
-              Direct access to hundreds of women who successfully completed returnships and are now hiring in their teams.
+              Direct access to pilot members who successfully completed returnships and are now hiring in their teams.
             </p>
-            <span className="text-[11px] font-mono text-[#A56F7C] block pt-2">
-              2,400+ Members
-            </span>
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-[11px] font-mono text-[#A56F7C] font-semibold">
+                4 Pilot Profiles Indexed
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#111111] text-[#9A9A9A] border border-[#D8C2A6]/10">
+                VERIFIED PILOT
+              </span>
+            </div>
           </div>
         </div>
       </section>
@@ -1605,14 +1985,17 @@ export default function Home() {
               BUILD YOUR COMEBACK PLAN.
             </h2>
             <p className="text-sm text-[#9A9A9A] font-light">
-              Select your career break reason to map targeted upskilling modules and verified employer criteria.
+              Select your career break reason (optional) to map targeted upskilling modules. Your privacy is protected by default.
             </p>
           </div>
 
           {/* Break Taxonomy Buttons */}
           <div className="space-y-4">
-            <span className="micro-label-muted text-[10px]">01 // CAREER BREAK REASON</span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="flex items-center justify-between">
+              <span className="micro-label-muted text-[10px]">01 // CAREER BREAK REASON (OPTIONAL)</span>
+              <span className="text-[11px] font-mono text-[#D8C2A6]">🔒 Never shared without consent</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
               {[
                 "MATERNITY",
                 "CAREGIVING",
@@ -1621,14 +2004,14 @@ export default function Home() {
                 "RELOCATION",
                 "SABBATICAL",
                 "PERSONAL",
-                "OTHER",
+                "PREFER NOT TO SAY",
               ].map((brk) => {
                 const isSelected = selectedBreakType === brk;
                 return (
                   <button
                     key={brk}
                     onClick={() => setSelectedBreakType(brk)}
-                    className={`p-4 rounded-xl border text-center font-mono text-xs uppercase tracking-wider transition-all ${
+                    className={`p-3.5 rounded-xl border text-center font-mono text-xs uppercase tracking-wider transition-all ${
                       isSelected
                         ? "bg-[#D8C2A6] text-[#111111] border-[#D8C2A6] font-semibold"
                         : "bg-[#181818] text-[#9A9A9A] border-[#D8C2A6]/10 hover:border-[#D8C2A6]/30 hover:text-[#F1E7DB]"
@@ -1677,10 +2060,66 @@ export default function Home() {
 
           <div className="pt-6">
             <button
-              onClick={handleAnalyzeCareer}
+              onClick={() => setShowOnboardingModal(true)}
               className="btn-editorial-primary text-xs"
             >
               <span>Synthesize My Comeback Plan →</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================ */}
+      {/* MODULE 11: GOVERNMENT PILOT & IMPACT ANALYTICS SHOWCASE      */}
+      {/* ============================================================ */}
+      <section className="py-20 px-6 md:px-12 lg:px-16 max-w-7xl mx-auto border-t border-[#D8C2A6]/10 relative z-10">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#1A1816] via-[#161413] to-[#121212] border border-[#D8C2A6]/25 shadow-2xl flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+          <div className="space-y-4 max-w-2xl">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-mono uppercase tracking-widest text-[#D8C2A6] px-2.5 py-1 rounded bg-[#D8C2A6]/10 border border-[#D8C2A6]/20">
+                Module 11 • Government & Institutional Testbed
+              </span>
+              <span className="text-[10px] font-mono text-emerald-400 flex items-center gap-1">
+                <Check className="w-3 h-3" /> Strictly Segregated Metrics
+              </span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#F1E7DB] leading-tight">
+              Evidence-Driven Public Pilot & Impact Analytics
+            </h2>
+            <p className="text-xs sm:text-sm text-[#C5B8AB] leading-relaxed">
+              Designed for state skill development agencies and multilateral partners. Explore the 100-fellow demonstration pilot proposal, verified public scheme directory (NCS, Skill India, Naan Mudhalvan), de-identified longitudinal outcomes, and SDG 4/5/8/10 alignment.
+            </p>
+            <div className="flex flex-wrap gap-2 text-[11px] font-mono text-[#9A9A9A] pt-1">
+              <span className="px-2.5 py-1 rounded-md bg-black/40 border border-white/10">100 Target Fellows</span>
+              <span className="px-2.5 py-1 rounded-md bg-black/40 border border-white/10">6-Month Runway</span>
+              <span className="px-2.5 py-1 rounded-md bg-black/40 border border-white/10">Zero Unapproved Endorsement Claims</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleOpenGovernmentPilot("dashboard")}
+              className="px-6 py-3.5 rounded-xl bg-[#D8C2A6] hover:bg-[#E5D5C1] text-[#111111] font-mono text-xs font-bold uppercase tracking-wider transition-all shadow-lg flex items-center justify-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>Launch Pilot Dashboard</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOpenGovernmentPilot("schemes")}
+              className="px-6 py-3.5 rounded-xl bg-[#202020] hover:bg-[#282828] border border-[#D8C2A6]/25 text-[#D8C2A6] hover:text-[#F1E7DB] font-mono text-xs font-semibold uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Public Scheme Navigator</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleOpenGovernmentPilot("presentation")}
+              className="px-6 py-3.5 rounded-xl bg-transparent hover:bg-white/5 border border-purple-400/30 text-purple-300 font-mono text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2"
+            >
+              <Layers className="w-4 h-4" />
+              <span>View Presentation Deck</span>
             </button>
           </div>
         </div>
@@ -1700,7 +2139,7 @@ export default function Home() {
           </p>
           <div className="pt-4 flex justify-center gap-4">
             <button
-              onClick={handleAnalyzeCareer}
+              onClick={() => setShowOnboardingModal(true)}
               className="btn-editorial-primary text-xs py-3.5 px-8"
             >
               <span>Start Your Comeback</span>
@@ -1721,19 +2160,32 @@ export default function Home() {
             <span>CAREER COMEBACK PLATFORM</span>
           </div>
 
-          <div className="flex items-center gap-6 uppercase tracking-wider text-[11px]">
-            <a
-              href="http://127.0.0.1:8000/docs"
-              target="_blank"
-              rel="noreferrer"
+          <div className="flex flex-wrap items-center gap-6 uppercase tracking-wider text-[11px]">
+            <button
+              onClick={() => {
+                setScoringDefaultTab("readiness");
+                setShowScoringModal(true);
+              }}
               className="hover:text-[#F1E7DB] transition-colors"
             >
-              API Swagger
-            </a>
+              Scoring Disclosures
+            </button>
             <span>•</span>
-            <span className="hover:text-[#F1E7DB]">Supabase Postgres RLS</span>
+            <button
+              onClick={() => setShowAdminModal(true)}
+              className="hover:text-[#F1E7DB] transition-colors"
+            >
+              Platform Governance
+            </button>
             <span>•</span>
-            <span className="hover:text-[#F1E7DB]">AI Engine v2.0</span>
+            <button
+              onClick={() => handleOpenGovernmentPilot("dashboard")}
+              className="hover:text-[#F1E7DB] text-[#D8C2A6] transition-colors"
+            >
+              Government Pilot & Impact
+            </button>
+            <span>•</span>
+            <span className="text-[#A56F7C]">Profiles Private By Default</span>
           </div>
 
           <div className="text-[11px]">© 2026 GFG. ALL RIGHTS RESERVED.</div>
@@ -1768,179 +2220,31 @@ export default function Home() {
         applications={myApplications}
         readinessScore={readinessData?.readiness_score || 82}
         onViewPassport={handleOpenPassport}
+        onOpenOnboarding={() => setShowOnboardingModal(true)}
+        onOpenDigitalTwin={() => setShowDigitalTwinModal(true)}
+        onOpenSimulator={() => setShowSimulatorModal(true)}
       />
 
-      {/* 3. Career Continuity Passport Modal (Section 18 & 19) */}
-      {showPassportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm overflow-y-auto animate-in fade-in">
-          <div className="w-full max-w-4xl bg-[#181818] text-[#F1E7DB] rounded-xl border border-[#D8C2A6]/20 p-8 sm:p-12 relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setShowPassportModal(false)}
-              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 text-[#F1E7DB]"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {/* 3. Verified Career Passport 2.0 Modal (Module 6) */}
+      <CareerPassportModal
+        isOpen={showPassportModal}
+        onClose={() => setShowPassportModal(false)}
+      />
 
-            <div className="border-b border-[#D8C2A6]/10 pb-6 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-              <div>
-                <span className="micro-label text-[#A56F7C] block mb-1">
-                  OFFICIAL VERIFICATION // GFG-PASS-2026-088
-                </span>
-                <h3 className="text-3xl sm:text-4xl font-light text-[#F1E7DB] tracking-tight">
-                  CAREER CONTINUITY PASSPORT
-                </h3>
-              </div>
 
-              <button
-                onClick={() => alert("Exporting cryptographically audited PDF...")}
-                className="btn-editorial-primary text-xs"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Export PDF</span>
-              </button>
-            </div>
+      {/* 4. Smart Opportunity and Returnship Engine Modal (Module 7) */}
+      <SmartOpportunityEngineModal
+        isOpen={showJobsModal}
+        onClose={() => setShowJobsModal(false)}
+        onViewPassport={handleOpenPassport}
+        onOpenWorkLife={() => setShowWorkLifeModal(true)}
+        activeWorkLifeSummary={
+          workLifeFilters.workMode !== "all" || workLifeFilters.partTimeOnly || workLifeFilters.childcareRequired
+            ? "Work-Life Filtered ✓"
+            : undefined
+        }
+      />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-mono text-xs">
-              <div className="space-y-4">
-                <div>
-                  <span className="text-[#9A9A9A] uppercase block">CANDIDATE</span>
-                  <span className="text-lg font-sans font-medium text-[#F1E7DB] mt-0.5 block">
-                    Priya Sharma
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[#9A9A9A] uppercase block">PREVIOUS TENURE</span>
-                  <span className="text-[#D8C2A6] mt-0.5 block">
-                    Software Engineer • 4.5 Years (Verified)
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[#9A9A9A] uppercase block">CAREER PAUSE</span>
-                  <span className="text-[#A56F7C] mt-0.5 block">
-                    14 Months Maternity Sabbatical (Respectfully Classified)
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[#9A9A9A] uppercase block">AVAILABILITY</span>
-                  <span className="text-[#F1E7DB] mt-0.5 block">
-                    Hybrid / Remote • {availableHours} Hours/Day
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <span className="text-[#9A9A9A] uppercase block mb-2">VERIFIED SKILL STACK</span>
-                  <div className="flex flex-wrap gap-2">
-                    {["Java", "SQL", "Spring Boot", "Power BI", "Python", "Pandas"].map((s) => (
-                      <span
-                        key={s}
-                        className="px-3 py-1 rounded-full bg-[#111111] border border-[#D8C2A6]/20 text-[#D8C2A6]"
-                      >
-                        {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <span className="text-[#9A9A9A] uppercase block mb-2">CAPSTONE REPOSITORIES</span>
-                  <div className="space-y-2">
-                    <div className="p-3 rounded-lg bg-[#111111] border border-[#D8C2A6]/10">
-                      <span className="text-[#F1E7DB] font-medium block">
-                        Customer Churn Predictive Pipeline
-                      </span>
-                      <span className="text-[11px] text-[#9A9A9A]">
-                        Python, Pandas & Automated Telemetry
-                      </span>
-                    </div>
-                    <div className="p-3 rounded-lg bg-[#111111] border border-[#D8C2A6]/10">
-                      <span className="text-[#F1E7DB] font-medium block">
-                        Enterprise Executive Dashboard
-                      </span>
-                      <span className="text-[11px] text-[#9A9A9A]">
-                        Power BI Star Schema & DAX Metrics
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-8 pt-6 border-t border-[#D8C2A6]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 font-mono text-[11px] text-[#9A9A9A]">
-              <span>CRYPTOGRAPHICALLY AUDITED BY GFG PROTOCOL</span>
-              <span className="text-[#D8C2A6]">STATUS: VERIFIED & ACTIVE FOR 2026 HIRING CYCLE</span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 4. Jobs Directory Modal */}
-      {showJobsModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm overflow-y-auto animate-in fade-in">
-          <div className="w-full max-w-4xl bg-[#181818] text-[#F1E7DB] rounded-xl border border-[#D8C2A6]/20 p-8 relative max-h-[88vh] overflow-y-auto">
-            <button
-              onClick={() => setShowJobsModal(false)}
-              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 text-[#F1E7DB]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="border-b border-[#D8C2A6]/10 pb-4 mb-6">
-              <span className="micro-label text-[#A56F7C] block mb-1">RETURNSHIP DIRECTORY</span>
-              <h3 className="text-3xl font-light text-[#F1E7DB]">
-                AVAILABLE RETURN POSITIONS ({jobs.length})
-              </h3>
-            </div>
-
-            <div className="space-y-4 font-mono text-xs">
-              {jobs.map((job) => {
-                const isApplied = myApplications.some((a) => a.job_id === job.id);
-                return (
-                  <div
-                    key={job.id}
-                    className="p-5 rounded-xl border border-[#D8C2A6]/10 bg-[#111111] flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:border-[#D8C2A6]/30 transition-all"
-                  >
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-sans text-base font-medium text-[#F1E7DB]">
-                          {job.title}
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#181818] text-[#D8C2A6] text-[10px] font-semibold border border-[#D8C2A6]/20">
-                          {job.compatibility?.match_score || 85}% MATCH
-                        </span>
-                      </div>
-                      <div className="text-[11px] text-[#9A9A9A] mt-1">
-                        {job.company_name} • {job.work_mode?.toUpperCase()} • {job.location} • ₹
-                        {job.salary_min?.toLocaleString()}/MO
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {currentRole === "candidate" && (
-                        <button
-                          onClick={() => handleApplyToJob(job.id)}
-                          disabled={isApplied || applyingJobId === job.id}
-                          className={`btn-editorial-primary text-xs py-2 px-4 ${
-                            isApplied
-                              ? "opacity-60 cursor-not-allowed bg-[#242424] text-[#9A9A9A]"
-                              : ""
-                          }`}
-                        >
-                          {isApplied ? "Applied ✓" : "Apply"}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 5. AI Interview Coach Modal */}
       {showInterviewModal && (
@@ -1969,10 +2273,7 @@ export default function Home() {
                   CAREER BREAK FRAMING STRATEGY
                 </span>
                 <p className="text-[#F1E7DB] font-sans leading-relaxed text-xs">
-                  Frame your 14-month maternity sabbatical with clarity and strength: emphasize 4.5
-                  years of solid backend engineering fundamentals, deliberate self-directed coursework
-                  in SQL and Power BI, and current readiness to deliver high impact in remote analytics
-                  tracks.
+                  Frame your {DEMO_METRICS.breakDurationFormatted} ({DEMO_METRICS.breakDurationMonths} Mo) {DEMO_PERSONA.break_reason?.toLowerCase() || "career pause"} with clarity and strength: emphasize {DEMO_METRICS.preBreakFormatted} of solid background in {DEMO_PERSONA.past_experience || "Data Analytics"}, deliberate self-directed coursework in SQL and Power BI, and current readiness to deliver high impact in remote analytics tracks.
                 </p>
               </div>
 
@@ -2013,100 +2314,13 @@ export default function Home() {
         </div>
       )}
 
-      {/* 6. Learning Roadmap Modal */}
-      {showRoadmapModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/80 backdrop-blur-sm overflow-y-auto animate-in fade-in">
-          <div className="w-full max-w-4xl bg-[#181818] text-[#F1E7DB] rounded-xl border border-[#D8C2A6]/20 p-8 relative max-h-[85vh] overflow-y-auto">
-            <button
-              onClick={() => setShowRoadmapModal(false)}
-              className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 text-[#F1E7DB]"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="border-b border-[#D8C2A6]/10 pb-4 mb-6">
-              <span className="micro-label text-[#A56F7C] block mb-1">ADAPTIVE CURRICULUM</span>
-              <h3 className="text-3xl font-light text-[#F1E7DB]">
-                YOUR PERSONALIZED {roadmapData?.estimated_weeks || 8}-WEEK ROADMAP
-              </h3>
-              <p className="text-xs font-mono text-[#9A9A9A] mt-1">
-                Calibrated for {availableHours} Hours/Day • Target: Data Analyst
-              </p>
-            </div>
-
-            <div className="space-y-3 font-mono text-xs">
-              {(roadmapData?.weekly_plan || [
-                {
-                  week: 1,
-                  title: "SQL Refresher & Advanced Windows",
-                  focus: "Complex aggregation, CTEs, ranking and partition queries",
-                  estimated_hours: 16,
-                },
-                {
-                  week: 2,
-                  title: "Python for Data Analytics",
-                  focus: "Data ingestion and cleaning with Pandas & NumPy",
-                  estimated_hours: 18,
-                },
-                {
-                  week: 3,
-                  title: "EDA & Visualization",
-                  focus: "Plotting distributions and correlation matrices with Matplotlib & Seaborn",
-                  estimated_hours: 18,
-                },
-                {
-                  week: 4,
-                  title: "Business Intelligence & Power BI",
-                  focus: "Data modeling, star-schema creation, and interactive dashboarding",
-                  estimated_hours: 16,
-                },
-                {
-                  week: 5,
-                  title: "Applied Statistics & Experimentation",
-                  focus: "Descriptive statistics, hypothesis tests, and A/B test analysis",
-                  estimated_hours: 16,
-                },
-                {
-                  week: 6,
-                  title: "Portfolio Capstone: Churn Analysis",
-                  focus: "End-to-end customer churn analytics project with presentation report",
-                  estimated_hours: 20,
-                },
-                {
-                  week: 7,
-                  title: "Interview Prep & Mock Problem Sets",
-                  focus: "LeetCode SQL problem sets and business analytics case studies",
-                  estimated_hours: 14,
-                },
-                {
-                  week: 8,
-                  title: "Resume Optimization & Applications",
-                  focus: "Integrate capstone portfolio into GFG Career Passport and apply",
-                  estimated_hours: 12,
-                },
-              ]).map((wk: any) => (
-                <div
-                  key={wk.week}
-                  className="p-4 rounded-xl border border-[#D8C2A6]/10 bg-[#111111] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-[#A56F7C] font-semibold">WEEK 0{wk.week} //</span>
-                      <span className="font-sans font-medium text-sm text-[#F1E7DB]">
-                        {wk.title}
-                      </span>
-                    </div>
-                    <p className="text-[#9A9A9A] text-[11px] mt-1">{wk.focus}</p>
-                  </div>
-                  <span className="px-3 py-1 rounded-full bg-[#181818] border border-[#D8C2A6]/15 text-[#D8C2A6] text-[11px] font-semibold shrink-0">
-                    {wk.estimated_hours} HRS
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 6. Adaptive Learning Engine Roadmap Modal (Module 5) */}
+      <AdaptiveRoadmapModal
+        isOpen={showRoadmapModal}
+        onClose={() => setShowRoadmapModal(false)}
+        initialSector="Data Analyst"
+        initialHours={Math.max(5, (availableHours || 3) * 5)}
+      />
 
       {/* 7. Skill Gap Modal */}
       {showSkillGapModal && (
@@ -2127,7 +2341,7 @@ export default function Home() {
                 CAREER INTELLIGENCE & SKILL GAP SYNTHESIS
               </h3>
               <p className="text-xs font-mono text-[#9A9A9A] mt-1">
-                Priya Sharma → Target: Data Analyst
+                {DEMO_PERSONA.full_name} → Target: {DEMO_PERSONA.target_role}
               </p>
             </div>
 
@@ -2138,7 +2352,7 @@ export default function Home() {
                     VERIFIED STRENGTHS
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {["SQL", "PROGRAMMING LOGIC", "DATA HANDLING", "JAVA"].map((s) => (
+                    {["SQL", "PROGRAMMING LOGIC", "DATA HANDLING", "PYTHON"].map((s) => (
                       <span
                         key={s}
                         className="px-2.5 py-0.5 rounded-full bg-[#181818] text-[#F1E7DB] text-[10px]"
@@ -2210,22 +2424,149 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center justify-between">
+              <div className="pt-4 flex flex-wrap items-center justify-between gap-3">
                 <span className="text-[#9A9A9A]">Est. Recovery: 8-10 Weeks</span>
-                <button
-                  onClick={() => {
-                    setShowSkillGapModal(false);
-                    handleGenerateRoadmap();
-                  }}
-                  className="btn-editorial-primary text-xs"
-                >
-                  <span>Generate Full Roadmap →</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setShowSkillGapModal(false);
+                      setShowDigitalTwinModal(true);
+                    }}
+                    className="btn-editorial-secondary text-xs border-blue-500/30 text-blue-200 hover:border-blue-400"
+                  >
+                    <span>Launch Career Digital Twin ↗</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSkillGapModal(false);
+                      handleGenerateRoadmap();
+                    }}
+                    className="btn-editorial-primary text-xs"
+                  >
+                    <span>Generate Full Roadmap →</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* 8. Scoring Explanation Modal (Transparency Disclosures) */}
+      <ScoringExplanationModal
+        isOpen={showScoringModal}
+        onClose={() => setShowScoringModal(false)}
+        defaultTab={scoringDefaultTab}
+      />
+
+      {/* 9. Mentorship and Community Ecosystem Modal (Module 8) */}
+      <MentorshipCommunityModal
+        isOpen={showMentorshipModal}
+        onClose={() => setShowMentorshipModal(false)}
+        initialTab={mentorshipInitialTab}
+      />
+
+      {/* 10. Real Comeback Story Modal (Elena Rostova Case Study) */}
+      <StoryDetailModal
+        isOpen={showStoryModal}
+        onClose={() => setShowStoryModal(false)}
+      />
+
+      {/* 11. Alumni Directory Modal (4 Pilot Profiles Indexed) */}
+      <AlumniDirectoryModal
+        isOpen={showAlumniModal}
+        onClose={() => setShowAlumniModal(false)}
+      />
+
+      {/* 12. Admin Governance Desk Modal */}
+      <AdminModal
+        isOpen={showAdminModal}
+        onClose={() => setShowAdminModal(false)}
+        currentUser={currentUser}
+      />
+
+      {/* 13. Intelligent Onboarding and Profile System Modal (Module 2) */}
+      <IntelligentOnboardingModal
+        isOpen={showOnboardingModal}
+        onClose={() => setShowOnboardingModal(false)}
+        onSuccess={handleOnboardingSuccess}
+      />
+
+      {/* 14. AI Career Digital Twin Modal (Module 3) */}
+      <DigitalTwinModal
+        isOpen={showDigitalTwinModal}
+        onClose={() => setShowDigitalTwinModal(false)}
+        onViewPassport={handleOpenPassport}
+        onOpenSimulator={() => setShowSimulatorModal(true)}
+      />
+
+      {/* 15. AI Career Future Simulator Modal (Module 4) */}
+      <CareerSimulatorModal
+        isOpen={showSimulatorModal}
+        onClose={() => setShowSimulatorModal(false)}
+        onOpenRoadmap={handleGenerateRoadmap}
+        onOpenDigitalTwin={() => setShowDigitalTwinModal(true)}
+      />
+
+      </main>
+
+      {/* ============================================================ */}
+      {/* MODULE 9 MODALS: ACCESSIBILITY, VOICE, ENTREPRENEURSHIP,     */}
+      {/* AND WORK-LIFE SUPPORT                                        */}
+      {/* ============================================================ */}
+
+      {/* Part 2: Accessibility Toolbar (WCAG 2.2 AA) */}
+      <AccessibilityToolbar
+        isOpen={showA11yModal}
+        onClose={() => setShowA11yModal(false)}
+      />
+
+      {/* Part 4: Voice Assistant Guidance Modal */}
+      <VoiceAssistantModal
+        isOpen={showVoiceModal}
+        onClose={() => setShowVoiceModal(false)}
+        onNavigateTo={handleGuidedRoute}
+      />
+
+      {/* Part 5: Entrepreneurship & Freelance Hub */}
+      <EntrepreneurshipHubModal
+        isOpen={showEntrepreneurshipModal}
+        onClose={() => setShowEntrepreneurshipModal(false)}
+        initialTab={entrepreneurshipInitialTab}
+      />
+
+      {/* Part 6: Work-Life Flexibility & Caregiver-Protected Settings */}
+      <WorkLifeSupportModal
+        isOpen={showWorkLifeModal}
+        onClose={() => setShowWorkLifeModal(false)}
+        currentFilters={workLifeFilters}
+        onApplyFilters={(filters) => {
+          setWorkLifeFilters(filters);
+          setShowJobsModal(true);
+          setFeedbackMsg({
+            type: "success",
+            text: "Work-life preferences applied to opportunity matching.",
+          });
+        }}
+      />
+
+      {/* ============================================================ */}
+      {/* MODULE 10: EMPLOYER INTELLIGENCE & RETURNSHIP TOOLKIT MODAL */}
+      {/* ============================================================ */}
+      <EmployerIntelligenceModal
+        isOpen={showEmployerModal}
+        onClose={() => setShowEmployerModal(false)}
+        initialTab={employerInitialTab}
+      />
+
+      {/* ============================================================ */}
+      {/* MODULE 11: GOVERNMENT PILOT & IMPACT ANALYTICS MODAL         */}
+      {/* ============================================================ */}
+      <GovernmentPilotModal
+        isOpen={showGovernmentModal}
+        onClose={() => setShowGovernmentModal(false)}
+        initialTab={governmentInitialTab}
+      />
     </div>
   );
 }

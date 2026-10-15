@@ -14,6 +14,7 @@ class Profile(Base):
     profile_photo_url = Column(Text, nullable=True)
     location = Column(String(255), nullable=True)
     role = Column(String(50), nullable=False, default="candidate") # 'candidate', 'employer', 'admin'
+    approval_status = Column(String(50), default="active") # 'active', 'pending_approval', 'rejected'
     bio = Column(Text, nullable=True)
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)

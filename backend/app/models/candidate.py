@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Text, Integer, Float, Boolean, Date, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, Text, Integer, Float, Boolean, Date, DateTime, ForeignKey, UniqueConstraint, JSON
 from sqlalchemy.orm import relationship
 from backend.app.models.base import Base, generate_uuid, utc_now
 
@@ -16,12 +16,17 @@ class CandidateProfile(Base):
     preferred_location = Column(String(255), nullable=True)
     available_hours_per_day = Column(Integer, default=4)
     current_status = Column(String(50), default="ready_to_return")
+    industry = Column(String(255), nullable=True)
+    career_goals = Column(String(255), nullable=True)
+    languages = Column(String(255), nullable=True)
+    salary_expectation = Column(String(100), nullable=True)
+    onboarding_completed = Column(Boolean, default=False)
     resume_url = Column(Text, nullable=True)
     linkedin_url = Column(Text, nullable=True)
     github_url = Column(Text, nullable=True)
     portfolio_url = Column(Text, nullable=True)
     return_readiness_status = Column(String(50), default="active")
-    career_break_visibility = Column(String(50), default="employers") # private, employers, public
+    career_break_visibility = Column(String(50), default="private") # private, employers, public
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
@@ -35,6 +40,8 @@ class CandidateProfile(Base):
     learning_progress = relationship("LearningProgress", back_populates="candidate", cascade="all, delete-orphan")
     applications = relationship("Application", back_populates="candidate", cascade="all, delete-orphan")
     recommendations = relationship("Recommendation", back_populates="candidate", cascade="all, delete-orphan")
+    digital_twin_events = relationship("DigitalTwinEvent", back_populates="candidate", cascade="all, delete-orphan")
+    saved_simulations = relationship("SavedSimulation", back_populates="candidate", cascade="all, delete-orphan")
 
 class CareerBreak(Base):
     __tablename__ = "career_breaks"
@@ -71,6 +78,9 @@ class CandidateSkill(Base):
     proficiency = Column(String(50), default="intermediate") # beginner, intermediate, advanced, expert
     years_experience = Column(Float, nullable=True)
     last_used_date = Column(Date, nullable=True)
+    provenance = Column(String(50), default="self_reported") # self_reported, ai_inferred, assessment_supported, independently_verified
+    confidence_score = Column(Float, default=1.0)
+    source_detail = Column(String(100), default="User Profile")
 
     __table_args__ = (UniqueConstraint("candidate_id", "skill_id", name="uq_candidate_skill"),)
 
@@ -163,3 +173,41 @@ class Recommendation(Base):
 
     candidate = relationship("CandidateProfile", back_populates="recommendations")
     job = relationship("Job", back_populates="recommendations")
+
+class OnboardingDraft(Base):
+    __tablename__ = "onboarding_drafts"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("profiles.id", ondelete="CASCADE"), nullable=False, unique=True)
+    current_step = Column(Integer, default=1)
+    draft_data = Column(Text, nullable=False) # JSON encoded data
+    is_completed = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    user = relationship("Profile")
+
+class DigitalTwinEvent(Base):
+    __tablename__ = "digital_twin_events"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    candidate_id = Column(String(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    event_type = Column(String(50), nullable=False) # skill_confirmed, skill_added, skill_corrected, skill_removed, assessment_completed, certificate_added, project_added, goal_updated, preferences_updated, twin_refreshed
+    summary = Column(String(255), nullable=False)
+    details = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    candidate = relationship("CandidateProfile", back_populates="digital_twin_events")
+
+class SavedSimulation(Base):
+    __tablename__ = "saved_simulations"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    candidate_id = Column(String(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    scenario_name = Column(String(255), nullable=False)
+    scenario_type = Column(String(50), nullable=False) # learn_skill, earn_qualification, change_industry, switch_remote, adjust_availability, complete_project, start_returnship
+    parameters = Column(JSON, nullable=False)
+    results = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+
+    candidate = relationship("CandidateProfile", back_populates="saved_simulations")

@@ -179,3 +179,33 @@ class CareerGapPassportResponse(BaseModel):
     completed_certifications: List[str]
     recent_projects: List[str]
     readiness_tier: str
+
+class OnboardingDraftSaveRequest(BaseModel):
+    current_step: int = Field(1, ge=1, le=7)
+    draft_data: dict = Field(default_factory=dict)
+
+class OnboardingDraftResponse(BaseModel):
+    current_step: int
+    draft_data: dict
+    is_completed: bool
+    updated_at: Optional[datetime] = None
+
+class OnboardingCompleteRequest(BaseModel):
+    previous_job_title: str = Field(..., min_length=2)
+    industry: Optional[str] = "Technology"
+    experience_years: float = Field(0.0, ge=0.0)
+    qualifications: Optional[str] = None
+    existing_skills: List[str] = Field(default_factory=list)
+    career_break_start_date: Optional[date] = None
+    career_break_end_date: Optional[date] = None
+    currently_on_break: bool = False
+    career_break_reason: Optional[str] = None
+    career_goals: List[str] = Field(default_factory=list)
+    weekly_learning_hours: int = Field(15, ge=1, le=80)
+    preferred_work_mode: str = Field("hybrid", pattern="^(remote|hybrid|onsite|flexible)$")
+    preferred_location: Optional[str] = "Bengaluru, IN"
+    language_preference: Optional[str] = "English"
+    salary_expectation: Optional[str] = None
+    profile_visibility: str = Field("private", pattern="^(private|employers|public)$")
+    opt_into_employer_sharing: bool = False
+    resume_url: Optional[str] = None

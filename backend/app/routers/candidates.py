@@ -1,10 +1,11 @@
-from typing import Optional
-from datetime import date
+import json
+from typing import Optional, List
+from datetime import date, datetime
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.app.database.database import get_db
 from backend.app.models.user import Profile
-from backend.app.models.candidate import CandidateProfile, CareerBreak
+from backend.app.models.candidate import CandidateProfile, CareerBreak, OnboardingDraft, Skill, CandidateSkill
 from backend.app.schemas.candidate import (
     CandidateProfileUpdate,
     CandidateProfileResponse,
@@ -12,6 +13,9 @@ from backend.app.schemas.candidate import (
     CandidateSkillResponse,
     CandidateInterestResponse,
     CareerGapPassportResponse,
+    OnboardingDraftSaveRequest,
+    OnboardingDraftResponse,
+    OnboardingCompleteRequest,
 )
 from backend.app.schemas.common import success_response, error_response
 from backend.app.middleware.auth_middleware import get_current_user, require_role
@@ -185,3 +189,223 @@ def get_career_gap_passport(
         "readiness_tier": "Tier 1 - Immediate Return Qualified" if total_months <= 36 else "Tier 2 - Mentored On-ramp"
     }
     return success_response(data)
+
+# ============================================================
+# MODULE 2: INTELLIGENT ONBOARDING & PROFILE SYSTEM ENDPOINTS
+# ============================================================
+
+@router.get("/onboarding/draft")
+def get_onboarding_draft(
+    current_user: Profile = Depends(require_role(["candidate", "admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Fetch the saved onboarding draft for the candidate.
+    """
+    draft = db.query(OnboardingDraft).filter(OnboardingDraft.user_id == current_user.id).first()
+    if not draft:
+        return success_response({
+            "current_step": 1,
+            "draft_data": {},
+            "is_completed": False,
+            "updated_at": None
+        })
+
+    try:
+        parsed_data = json.loads(draft.draft_data) if draft.draft_data else {}
+    except Exception:
+        parsed_data = {}
+
+    return success_response({
+        "current_step": draft.current_step,
+        "draft_data": parsed_data,
+        "is_completed": draft.is_completed,
+        "updated_at": draft.updated_at.isoformat() if draft.updated_at else None
+    })
+
+@router.post("/onboarding/draft")
+def save_onboarding_draft(
+    req: OnboardingDraftSaveRequest,
+    current_user: Profile = Depends(require_role(["candidate", "admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Save or autosave the onboarding draft.
+    """
+    draft = db.query(OnboardingDraft).filter(OnboardingDraft.user_id == current_user.id).first()
+    raw_json = json.dumps(req.draft_data)
+
+    if not draft:
+        draft = OnboardingDraft(
+            user_id=current_user.id,
+            current_step=req.current_step,
+            draft_data=raw_json,
+            is_completed=False
+        )
+        db.add(draft)
+    else:
+        draft.current_step = req.current_step
+        draft.draft_data = raw_json
+        draft.updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(draft)
+
+    return success_response({
+        "current_step": draft.current_step,
+        "is_completed": draft.is_completed,
+        "saved_at": draft.updated_at.isoformat() if draft.updated_at else datetime.utcnow().isoformat(),
+        "message": "Onboarding draft saved successfully."
+    })
+
+@router.post("/onboarding/complete")
+def complete_onboarding(
+    req: OnboardingCompleteRequest,
+    current_user: Profile = Depends(require_role(["candidate", "admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Finalize onboarding: commits profile, career break, and skills,
+    generates personalized roadmap, and marks draft completed.
+    """
+    cand = current_user.candidate_profile
+    if not cand:
+        cand = CandidateProfile(user_id=current_user.id)
+        db.add(cand)
+        db.flush()
+
+    # 1. Update Candidate Profile details
+    cand.previous_job_title = req.previous_job_title
+    cand.industry = req.industry or "Technology"
+    cand.years_experience = req.experience_years
+    cand.highest_qualification = req.qualifications
+    cand.preferred_work_mode = req.preferred_work_mode
+    cand.preferred_location = req.preferred_location or "Bengaluru, IN"
+    cand.available_hours_per_day = max(1, min(12, req.weekly_learning_hours // 5))
+    cand.career_break_visibility = req.profile_visibility
+    cand.headline = f"Returning {req.previous_job_title} | {cand.industry} Specialist"
+    cand.career_goals = ", ".join(req.career_goals) if req.career_goals else "Explore suitable return options"
+    cand.languages = req.language_preference or "English"
+    cand.salary_expectation = req.salary_expectation
+    cand.onboarding_completed = True
+    if req.resume_url:
+        cand.resume_url = req.resume_url
+
+    # 2. Update or Create Career Break record (Optional & respectful)
+    if req.career_break_start_date or req.currently_on_break or req.career_break_reason:
+        # Check if an existing break exists
+        cb = cand.career_breaks[0] if cand.career_breaks else None
+        b_type = (req.career_break_reason or "sabbatical").lower()
+        if b_type not in ["maternity", "caregiving", "health", "education", "relocation", "sabbatical", "personal", "other"]:
+            b_type = "sabbatical"
+
+        if not cb:
+            cb = CareerBreak(
+                candidate_id=cand.id,
+                break_type=b_type,
+                start_date=req.career_break_start_date or date(2022, 7, 1),
+                end_date=req.career_break_end_date,
+                currently_on_break=req.currently_on_break,
+                description=req.career_break_reason or "Career pause for family leadership & self-directed upskilling."
+            )
+            db.add(cb)
+        else:
+            cb.break_type = b_type
+            if req.career_break_start_date:
+                cb.start_date = req.career_break_start_date
+            cb.end_date = req.career_break_end_date
+            cb.currently_on_break = req.currently_on_break
+            if req.career_break_reason:
+                cb.description = req.career_break_reason
+
+    # 3. Associate Existing Skills
+    for skill_name in req.existing_skills:
+        clean_name = skill_name.strip()
+        if not clean_name:
+            continue
+        skill_obj = db.query(Skill).filter(Skill.name.ilike(clean_name)).first()
+        if not skill_obj:
+            skill_obj = Skill(name=clean_name, category="Technical")
+            db.add(skill_obj)
+            db.flush()
+
+        existing_link = db.query(CandidateSkill).filter(
+            CandidateSkill.candidate_id == cand.id,
+            CandidateSkill.skill_id == skill_obj.id
+        ).first()
+        if not existing_link:
+            cand_skill = CandidateSkill(
+                candidate_id=cand.id,
+                skill_id=skill_obj.id,
+                proficiency="advanced" if cand.years_experience >= 3.0 else "intermediate",
+                years_experience=min(cand.years_experience, 4.0)
+            )
+            db.add(cand_skill)
+
+    # 4. Mark draft as completed
+    draft = db.query(OnboardingDraft).filter(OnboardingDraft.user_id == current_user.id).first()
+    if draft:
+        draft.is_completed = True
+        draft.current_step = 7
+        draft.updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(cand)
+
+    # 5. Build Personalized Synthesis (Step 6 / Step 7)
+    personalized_plan = {
+        "career_summary": f"Targeting return as {req.previous_job_title} with {cand.years_experience} verified pre-break years in {cand.industry}. Focus: {cand.career_goals}.",
+        "recommended_pathway": "Maternity & Family Return Track" if "maternity" in (req.career_break_reason or "").lower() else "Returning to Tech Track",
+        "preliminary_readiness_score": 82 if cand.years_experience >= 3 else 76,
+        "weekly_schedule": f"{cand.available_hours_per_day} Hours/Day ({req.weekly_learning_hours} Hours/Week)",
+        "estimated_duration_weeks": 8 if req.weekly_learning_hours >= 15 else 12,
+        "learning_modules": [
+            {"week": 1, "topic": "SQL & Analytical Ingestion Refresher", "hours": 16},
+            {"week": 2, "topic": "Modern Frameworks & Python Pipelines", "hours": 18},
+            {"week": 3, "topic": "Cloud Data Warehouses & KPI Modeling", "hours": 16},
+            {"week": 4, "topic": "Executive BI Reporting & Dashboards", "hours": 16},
+            {"week": 5, "topic": "Portfolio Capstone: Customer Telemetry Pipeline", "hours": 20},
+            {"week": 6, "topic": "Interview Prep & Narrative Formulation", "hours": 14},
+            {"week": 7, "topic": "Career Continuity Passport Audit & Verification", "hours": 12},
+            {"week": 8, "topic": "Vetted Employer Matching & Returnship Placement", "hours": 12},
+        ],
+        "passport_preview": {
+            "candidate_name": current_user.full_name,
+            "verified_tenure": f"{cand.years_experience} Years in {cand.previous_job_title}",
+            "sharing_consent_granted": req.opt_into_employer_sharing,
+            "visibility_level": cand.career_break_visibility,
+        }
+    }
+
+    return success_response({
+        "message": "Onboarding completed successfully.",
+        "candidate": format_candidate_details(cand, current_user),
+        "personalized_plan": personalized_plan
+    })
+
+@router.delete("/onboarding/draft")
+def delete_onboarding_draft(
+    current_user: Profile = Depends(require_role(["candidate", "admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Clear/reset the onboarding draft so the candidate can start afresh.
+    """
+    draft = db.query(OnboardingDraft).filter(OnboardingDraft.user_id == current_user.id).first()
+    if draft:
+        db.delete(draft)
+        db.commit()
+    return success_response({"message": "Onboarding draft cleared successfully."})
+
+@router.delete("/me")
+def delete_my_candidate_account(
+    current_user: Profile = Depends(require_role(["candidate"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete candidate account and all associated personal data (Privacy & Data Deletion Compliance).
+    """
+    user_id = current_user.id
+    db.delete(current_user)
+    db.commit()
+    return success_response({"message": "Candidate account and personal records successfully deleted."})

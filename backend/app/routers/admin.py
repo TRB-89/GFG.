@@ -79,3 +79,73 @@ def verify_company(
     comp.verified = True
     db.commit()
     return success_response({"message": f"Company {comp.name} verified successfully."})
+
+@router.post("/demo-reset")
+def reset_demo_environment(
+    current_user: Profile = Depends(require_role(["admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Safely resets the demonstration data environment to baseline state.
+    Restricted to non-production demo environments.
+    """
+    from backend.app.config.settings import settings
+    if settings.ENVIRONMENT == "production":
+        return error_response("FORBIDDEN", "Demo reset is disabled in production environments.")
+
+    # Re-run database seed safely to restore Ananya Raman and Nova Tech
+    from backend.database.seed_data import seed_database
+    seed_database()
+
+    return success_response({
+        "status": "success",
+        "message": "Demonstration environment successfully reset to baseline seed state.",
+        "sample_candidate": "Ananya Raman (Candidate Persona)",
+        "sample_employer": "Nova Tech (Fictional Returnship Partner)",
+        "reset_scope": ["candidate_profiles", "returnship_jobs", "sample_applications", "community_mentors"]
+    })
+
+@router.get("/security-audit")
+def get_security_audit_status(
+    current_user: Profile = Depends(require_role(["admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Module 12 Security Audit: System-level hardening and authorization status.
+    """
+    from backend.app.config.settings import settings
+    return success_response({
+        "audit_version": "GFG-SEC-2026-v12",
+        "environment": settings.ENVIRONMENT,
+        "security_posture": {
+            "authentication": {
+                "type": "JWT Bearer Token",
+                "algorithm": settings.JWT_ALGORITHM,
+                "expiration_minutes": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+                "server_side_verification": True
+            },
+            "role_based_access_control": {
+                "roles_enforced": ["candidate", "employer", "mentor", "admin"],
+                "server_side_enforcement": "FastAPI require_role dependency on all protected routes",
+                "client_side_only_reliance": False
+            },
+            "document_storage_hardening": {
+                "path_traversal_protection": "Sanitized basename with relative dot-dot stripping",
+                "resume_authorization": "Owner candidate, consented employer with active application, or admin only",
+                "public_resume_scraping_prevented": True,
+                "max_upload_size_mb": 5
+            },
+            "privacy_compliance": {
+                "framework": "Digital Personal Data Protection Act (DPDP Act 2023, India)",
+                "right_to_erasure": "Available via DELETE /api/candidates/me and /api/privacy/erasure-request",
+                "consent_revocation": "Candidate-controlled one-click revocation supported",
+                "small_cell_suppression": "k-anonymity (N < 5) enforced on statistical exports"
+            },
+            "responsible_ai": {
+                "autonomous_rejection_allowed": False,
+                "career_break_penalty_prohibited": True,
+                "transparent_scoring_rubric": True,
+                "dispute_mechanism_available": True
+            }
+        }
+    })

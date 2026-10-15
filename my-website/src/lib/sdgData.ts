@@ -443,7 +443,7 @@ export const COMMUNITY_PROJECTS: CommunityProject[] = [
     status: "VERIFIED",
     contributors: 210,
     impactMetrics: "340 MWh Clean Solar Delivered // 65 Farming Families Powered",
-    projectLead: "Priya Sharma & Nova Tech Coalition",
+    projectLead: "Ananya Raman & Nova Tech Coalition",
     image: "https://images.unsplash.com/photo-1509391365360-2e959784a276?q=80&w=1600&auto=format&fit=crop",
     problemSummary: "Frequent 12-hour grid blackouts halted irrigation pumps, forcing heavy reliance on polluting diesel fuel.",
     approachSummary: "Elevated dual-use bifacial solar canopies that provide shade for sensitive crops while generating microgrid power.",

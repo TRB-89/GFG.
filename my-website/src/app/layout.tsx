@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
+import { LanguageProvider } from "@/lib/i18n/LanguageContext";
+import { AccessibilityProvider } from "@/lib/accessibility/AccessibilityContext";
+import { BandwidthProvider } from "@/lib/bandwidth/BandwidthContext";
 
 const sansFont = Inter({
   variable: "--font-sans",
@@ -17,9 +20,9 @@ const serifFont = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "GFG — Editorial Career Comeback Platform | Return. Rebuild. Rise.",
+  title: "GFG — Inclusive Career Continuity & Return-to-Work Platform | Return. Rebuild. Rise.",
   description:
-    "A minimal, cinematic editorial career platform designed to help women rebuild skills, regain confidence, and return to meaningful work after a career break.",
+    "An inclusive, accessible editorial career platform designed to help women rebuild skills, regain confidence, find flexible work, or launch sustainable businesses without stigma.",
 };
 
 export default function RootLayout({
@@ -33,9 +36,14 @@ export default function RootLayout({
       className={`${sansFont.variable} ${serifFont.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-[#111111] text-[#F1E7DB] font-sans selection:bg-[#A56F7C] selection:text-[#F1E7DB]">
-        {children}
+        <LanguageProvider>
+          <AccessibilityProvider>
+            <BandwidthProvider>
+              {children}
+            </BandwidthProvider>
+          </AccessibilityProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
 }
-

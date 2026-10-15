@@ -14,7 +14,12 @@ class Company(Base):
     website = Column(String(255), nullable=True)
     location = Column(String(255), nullable=True)
     company_size = Column(String(50), nullable=True)
-    verified = Column(Boolean, default=True)
+    authorized_representative = Column(String(255), nullable=True)
+    business_contact_email = Column(String(255), nullable=True)
+    business_contact_phone = Column(String(50), nullable=True)
+    verification_status = Column(String(50), default="pending_review") # pending_review, under_audit, verified, rejected
+    hiring_charter_accepted = Column(Boolean, default=False)
+    verified = Column(Boolean, default=False) # Employer registration must not automatically grant verified status
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
