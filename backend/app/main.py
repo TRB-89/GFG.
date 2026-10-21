@@ -92,6 +92,7 @@ from backend.app.routers import (
     government_pilot,
     privacy,
     responsible_ai,
+    learning,
 )
 
 app.include_router(auth.router)
@@ -117,6 +118,7 @@ app.include_router(employer_intelligence.router)
 app.include_router(government_pilot.router)
 app.include_router(privacy.router)
 app.include_router(responsible_ai.router)
+app.include_router(learning.router)
 
 # Global Exception Handlers per Section 21 & 22
 @app.exception_handler(HTTPException)

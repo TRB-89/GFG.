@@ -51,6 +51,7 @@ interface EditorialNavigationProps {
   onOpenWorkLife?: () => void;
   onOpenEmployerDesk?: (tab?: "dashboard" | "candidates" | "builder" | "toolkit" | "analytics" | "verification") => void;
   onOpenGovernmentPilot?: (tab?: "dashboard" | "design" | "schemes" | "sdg" | "reporting" | "presentation") => void;
+  onOpenLearningHub?: () => void;
   onSwitchRole: (role: PlatformRole) => void;
 }
 
@@ -72,6 +73,7 @@ export function EditorialNavigation({
   onOpenWorkLife,
   onOpenEmployerDesk,
   onOpenGovernmentPilot,
+  onOpenLearningHub,
   onSwitchRole,
 }: EditorialNavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -154,6 +156,17 @@ export function EditorialNavigation({
             <a href="#opportunities" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
               {t("nav.opportunities")}
             </a>
+            {onOpenLearningHub && (
+              <button
+                type="button"
+                onClick={onOpenLearningHub}
+                className="hover:text-[#F1E7DB] opacity-90 hover:opacity-100 transition-all uppercase flex items-center gap-1.5 text-[#E2D4C3]"
+                title="GFG Learning Hub & Verified Returnship Certificates"
+              >
+                <GraduationCap className="w-3.5 h-3.5 text-[#D8C2A6]" />
+                <span>Learning Hub</span>
+              </button>
+            )}
             {onOpenEntrepreneurship && (
               <button
                 type="button"
@@ -437,6 +450,19 @@ export function EditorialNavigation({
           >
             05 // {t("nav.opportunities")}
           </a>
+          {onOpenLearningHub && (
+            <button
+              type="button"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenLearningHub();
+              }}
+              className="w-full text-left hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818] flex items-center justify-between text-[#E2D4C3]"
+            >
+              <span>06 // Learning Hub & Certificates</span>
+              <GraduationCap className="w-4 h-4 text-[#D8C2A6]" />
+            </button>
+          )}
           {onOpenEntrepreneurship && (
             <button
               type="button"

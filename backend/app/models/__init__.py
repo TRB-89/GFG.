@@ -37,6 +37,20 @@ from backend.app.models.community import (
     CommunityModerationReport,
     UserBlock,
 )
+from backend.app.models.learning import (
+    Course,
+    CourseModule,
+    Lesson,
+    CourseEnrollment,
+    LessonProgress,
+    Assessment,
+    AssessmentQuestion,
+    AssessmentAttempt,
+    PracticalAssignment,
+    AssignmentSubmission,
+    LmsCertificate,
+    CertificateAuditLog,
+)
 
 __all__ = [
     "Base",
@@ -75,4 +89,17 @@ __all__ = [
     "InterviewPracticeSession",
     "CommunityModerationReport",
     "UserBlock",
+    "Course",
+    "CourseModule",
+    "Lesson",
+    "CourseEnrollment",
+    "LessonProgress",
+    "Assessment",
+    "AssessmentQuestion",
+    "AssessmentAttempt",
+    "PracticalAssignment",
+    "AssignmentSubmission",
+    "LmsCertificate",
+    "CertificateAuditLog",
 ]
+

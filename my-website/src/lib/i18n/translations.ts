@@ -24,6 +24,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationDictionary> = {
     "nav.stories": "Stories",
     "nav.dashboard": "Dashboard",
     "nav.statement": "Statement",
+    "nav.learning_hub": "Learning Hub",
     "nav.entrepreneurship": "Entrepreneurship Hub",
     "nav.work_life": "Work-Life Fit",
     "nav.need_help": "What Do You Need?",
@@ -31,6 +32,8 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationDictionary> = {
     "nav.accessibility": "Accessibility",
     "nav.language": "Language",
     "nav.data_saver": "Data Saver",
+    "learning.title": "GFG Learning Hub",
+    "learning.subtitle": "Free, accredited-style career returner courses, practical assessments, and verified credentials.",
     
     // Hero & Editorial
     "hero.kicker": "GFG / CONTINUITY & DIGNITY",
@@ -183,6 +186,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationDictionary> = {
     "nav.stories": "வெற்றிக் கதைகள்",
     "nav.dashboard": "டாஷ்போர்டு",
     "nav.statement": "எங்கள் நோக்கம்",
+    "nav.learning_hub": "கற்றல் மையம்",
     "nav.entrepreneurship": "தொழில்முனைவு மையம்",
     "nav.work_life": "வேலை-வாழ்க்கை சமநிலை",
     "nav.need_help": "உங்களுக்கு என்ன தேவை?",
@@ -190,6 +194,8 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationDictionary> = {
     "nav.accessibility": "அணுகல்தன்மை",
     "nav.language": "மொழி",
     "nav.data_saver": "டேட்டா சேவர்",
+    "learning.title": "GFG கற்றல் மையம்",
+    "learning.subtitle": "பெண்களின் மறுபிரவேசத்திற்கான இலவச தொழில்முறை படிப்புகள் மற்றும் சரிபார்க்கப்பட்ட சான்றிதழ்கள்.",
 
     // Hero & Editorial
     "hero.kicker": "GFG / கண்ணியம் மற்றும் தொழில் தொடர்ச்சி",
@@ -342,6 +348,7 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationDictionary> = {
     "nav.stories": "सफलता की कहानियां",
     "nav.dashboard": "डैशबोर्ड",
     "nav.statement": "हमारा उद्देश्य",
+    "nav.learning_hub": "सीखने का केंद्र (Learning Hub)",
     "nav.entrepreneurship": "उद्यमिता केंद्र",
     "nav.work_life": "कार्य-जीवन संतुलन",
     "nav.need_help": "आपको क्या चाहिए?",
@@ -349,6 +356,8 @@ export const TRANSLATIONS: Record<SupportedLocale, TranslationDictionary> = {
     "nav.accessibility": "सुलभता (Accessibility)",
     "nav.language": "भाषा",
     "nav.data_saver": "डेटा सेवर",
+    "learning.title": "GFG सीखने का केंद्र",
+    "learning.subtitle": "करियर वापसी के लिए निःशुल्क कौशल पाठ्यक्रम, व्यावहारिक मूल्यांकन और सत्यापित प्रमाणपत्र।",
 
     // Hero & Editorial
     "hero.kicker": "GFG / गरिमा और करियर निरंतरता",

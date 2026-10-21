@@ -261,3 +261,217 @@ USING (job_id IN (SELECT id FROM jobs WHERE company_id IN (SELECT id FROM compan
 
 CREATE POLICY "Employers can update application status for their jobs" ON applications FOR UPDATE 
 USING (job_id IN (SELECT id FROM jobs WHERE company_id IN (SELECT id FROM companies WHERE owner_user_id IN (SELECT id FROM profiles WHERE auth_user_id = auth.uid()))));
+
+-- ============================================================================
+-- 10. GFG LEARNING MANAGEMENT SYSTEM (LMS) & CERTIFICATION TABLES
+-- ============================================================================
+
+-- Courses
+CREATE TABLE IF NOT EXISTS courses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    slug VARCHAR(120) NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    headline VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    category VARCHAR(80) NOT NULL,
+    level VARCHAR(50) DEFAULT 'Beginner to Intermediate',
+    estimated_hours INTEGER DEFAULT 12,
+    passing_score INTEGER DEFAULT 70,
+    max_quiz_attempts INTEGER DEFAULT 3,
+    version VARCHAR(20) DEFAULT '1.0.0',
+    is_published BOOLEAN DEFAULT true,
+    is_archived BOOLEAN DEFAULT false,
+    issuer_name VARCHAR(255) DEFAULT 'GFG — Gap For Good',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Course Modules
+CREATE TABLE IF NOT EXISTS course_modules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    order_index INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Lessons
+CREATE TABLE IF NOT EXISTS lessons (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    module_id UUID NOT NULL REFERENCES course_modules(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    slug VARCHAR(120) NOT NULL,
+    content_markdown TEXT NOT NULL,
+    video_url TEXT,
+    downloadable_resources JSONB DEFAULT '[]'::jsonb,
+    interactive_check JSONB,
+    order_index INTEGER DEFAULT 0,
+    is_mandatory BOOLEAN DEFAULT true,
+    estimated_minutes INTEGER DEFAULT 20,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Course Enrollments
+CREATE TABLE IF NOT EXISTS course_enrollments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'completed', 'dropped')),
+    progress_percentage DECIMAL(5, 2) DEFAULT 0.0,
+    enrolled_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    completed_at TIMESTAMP WITH TIME ZONE,
+    CONSTRAINT unique_user_course UNIQUE (user_id, course_id)
+);
+
+-- Lesson Progress
+CREATE TABLE IF NOT EXISTS lesson_progress (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    enrollment_id UUID NOT NULL REFERENCES course_enrollments(id) ON DELETE CASCADE,
+    lesson_id UUID NOT NULL REFERENCES lessons(id) ON DELETE CASCADE,
+    is_completed BOOLEAN DEFAULT false,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    last_accessed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT unique_enrollment_lesson UNIQUE (enrollment_id, lesson_id)
+);
+
+-- Assessments (Quizzes)
+CREATE TABLE IF NOT EXISTS assessments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    passing_score INTEGER DEFAULT 70,
+    max_attempts INTEGER DEFAULT 3,
+    time_limit_minutes INTEGER DEFAULT 30,
+    randomize_questions BOOLEAN DEFAULT true,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Assessment Questions
+CREATE TABLE IF NOT EXISTS assessment_questions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    options JSONB NOT NULL,
+    correct_option_index INTEGER NOT NULL,
+    explanation TEXT,
+    order_index INTEGER DEFAULT 0
+);
+
+-- Assessment Attempts
+CREATE TABLE IF NOT EXISTS assessment_attempts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assessment_id UUID NOT NULL REFERENCES assessments(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    attempt_number INTEGER DEFAULT 1,
+    score_percentage DECIMAL(5, 2) NOT NULL,
+    passed BOOLEAN DEFAULT false,
+    answers_submitted JSONB NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Practical Assignments
+CREATE TABLE IF NOT EXISTS practical_assignments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    prompt TEXT NOT NULL,
+    rubric JSONB NOT NULL,
+    submission_guidelines TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Assignment Submissions
+CREATE TABLE IF NOT EXISTS assignment_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    assignment_id UUID NOT NULL REFERENCES practical_assignments(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    submission_url TEXT,
+    submission_notes TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'submitted' CHECK (status IN ('submitted', 'under_review', 'approved', 'rejected')),
+    reviewer_feedback TEXT,
+    reviewed_by UUID REFERENCES profiles(id),
+    reviewed_at TIMESTAMP WITH TIME ZONE,
+    submitted_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- GFG Verified LMS Certificates
+CREATE TABLE IF NOT EXISTS lms_certificates (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    credential_id VARCHAR(100) NOT NULL UNIQUE,
+    user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+    course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+    recipient_name VARCHAR(255) NOT NULL,
+    course_title VARCHAR(255) NOT NULL,
+    course_version VARCHAR(20) NOT NULL,
+    learning_outcomes JSONB DEFAULT '[]'::jsonb,
+    issuer_name VARCHAR(255) DEFAULT 'GFG — Gap For Good',
+    verification_url TEXT NOT NULL,
+    qr_code_data TEXT NOT NULL,
+    is_revoked BOOLEAN DEFAULT false,
+    revocation_reason TEXT,
+    revoked_at TIMESTAMP WITH TIME ZONE,
+    is_public BOOLEAN DEFAULT true,
+    issued_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT unique_user_course_version UNIQUE (user_id, course_id, course_version)
+);
+
+-- Certificate Audit Logs
+CREATE TABLE IF NOT EXISTS certificate_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    action VARCHAR(80) NOT NULL,
+    credential_id VARCHAR(100),
+    user_id UUID REFERENCES profiles(id),
+    actor_id UUID REFERENCES profiles(id),
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(100),
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- LMS Indexes
+CREATE INDEX IF NOT EXISTS idx_courses_slug ON courses(slug);
+CREATE INDEX IF NOT EXISTS idx_enrollments_user ON course_enrollments(user_id);
+CREATE INDEX IF NOT EXISTS idx_attempts_user ON assessment_attempts(user_id);
+CREATE INDEX IF NOT EXISTS idx_submissions_user ON assignment_submissions(user_id);
+CREATE INDEX IF NOT EXISTS idx_certs_credential ON lms_certificates(credential_id);
+
+-- LMS ROW LEVEL SECURITY POLICIES
+ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE course_modules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lessons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE course_enrollments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lesson_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assessments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assessment_questions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assessment_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE practical_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE assignment_submissions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE lms_certificates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE certificate_audit_logs ENABLE ROW LEVEL SECURITY;
+
+-- 1. Public can view published courses, modules, lessons, assessments, and public certificates
+CREATE POLICY "Public can view published courses" ON courses FOR SELECT USING (is_published = true AND is_archived = false);
+CREATE POLICY "Public can view course modules" ON course_modules FOR SELECT USING (true);
+CREATE POLICY "Public can view lessons" ON lessons FOR SELECT USING (true);
+CREATE POLICY "Public can view assessments" ON assessments FOR SELECT USING (true);
+CREATE POLICY "Public can view practical assignments" ON practical_assignments FOR SELECT USING (true);
+CREATE POLICY "Public can view certificates for verification" ON lms_certificates FOR SELECT USING (true);
+
+-- 2. Learners can view and manage their own enrollments, progress, attempts, and submissions
+CREATE POLICY "Learners can view own enrollments" ON course_enrollments FOR ALL
+USING (user_id IN (SELECT id FROM profiles WHERE auth_user_id = auth.uid()));
+
+CREATE POLICY "Learners can view own lesson progress" ON lesson_progress FOR ALL
+USING (enrollment_id IN (SELECT id FROM course_enrollments WHERE user_id IN (SELECT id FROM profiles WHERE auth_user_id = auth.uid())));
+
+CREATE POLICY "Learners can view own assessment attempts" ON assessment_attempts FOR ALL
+USING (user_id IN (SELECT id FROM profiles WHERE auth_user_id = auth.uid()));
+
+CREATE POLICY "Learners can manage own submissions" ON assignment_submissions FOR ALL
+USING (user_id IN (SELECT id FROM profiles WHERE auth_user_id = auth.uid()));
+
+-- 3. Admins have full access across all LMS tables
+CREATE POLICY "Admins have full LMS access" ON courses FOR ALL
+USING (EXISTS (SELECT 1 FROM profiles WHERE auth_user_id = auth.uid() AND role = 'admin'));
+

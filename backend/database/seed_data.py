@@ -280,6 +280,10 @@ def seed_database():
     # Always ensure Module 8 community data is populated
     seed_community_data(db)
 
+    # Always ensure Phase 8 LMS courses & assessments are populated
+    from backend.database.seed_learning import seed_learning_hub_data
+    seed_learning_hub_data(db)
+
     # Check if already seeded for core data
     existing_priya = db.query(Profile).filter(Profile.email == "priya.sharma@example.com").first()
     if existing_priya:

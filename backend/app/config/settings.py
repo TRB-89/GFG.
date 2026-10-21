@@ -23,8 +23,16 @@ class Settings(BaseSettings):
     # CORS
     FRONTEND_URL: str = "http://localhost:3000,http://localhost:3001"
     
-    # AI (for Module 3 placeholder)
+    # AI (for Gemini or OpenAI)
     AI_API_KEY: str = ""
+    GEMINI_API_KEY: str = ""
+
+    # YouTube Data API v3
+    YOUTUBE_API_KEY: str = ""
+
+    # Resend Transactional Email
+    RESEND_API_KEY: str = ""
+    RESEND_FROM_EMAIL: str = "GFG Academy <onboarding@resend.dev>"
     
     @property
     def cors_origins(self) -> List[str]:

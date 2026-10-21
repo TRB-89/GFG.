@@ -55,6 +55,7 @@ import { WorkLifeSupportModal, WorkLifeFilters } from "@/components/WorkLifeSupp
 import EmployerIntelligenceModal from "@/components/EmployerIntelligenceModal";
 import { GovernmentPilotModal } from "@/components/GovernmentPilotModal";
 import { GuidedAssistanceSection } from "@/components/GuidedAssistanceSection";
+import { LearningHubModal } from "@/components/learning/LearningHubModal";
 import { useTranslation, AiTranslationDisclaimer } from "@/lib/i18n/LanguageContext";
 import { useBandwidth } from "@/lib/bandwidth/BandwidthContext";
 import { useAccessibility } from "@/lib/accessibility/AccessibilityContext";
@@ -249,6 +250,9 @@ export default function Home() {
     "dashboard" | "design" | "schemes" | "sdg" | "reporting" | "presentation"
   >("dashboard");
 
+  // GFG Learning Hub & Verified Certificate System
+  const [showLearningModal, setShowLearningModal] = useState<boolean>(false);
+
   const handleOpenGovernmentPilot = (
     tab: "dashboard" | "design" | "schemes" | "sdg" | "reporting" | "presentation" = "dashboard"
   ) => {
@@ -277,6 +281,9 @@ export default function Home() {
       case "open_mentorship":
         setMentorshipInitialTab("mentors");
         setShowMentorshipModal(true);
+        break;
+      case "open_learning_hub":
+        setShowLearningModal(true);
         break;
       default:
         setShowOnboardingModal(true);
@@ -592,6 +599,7 @@ export default function Home() {
         onOpenWorkLife={() => setShowWorkLifeModal(true)}
         onOpenEmployerDesk={handleOpenEmployerDesk}
         onOpenGovernmentPilot={handleOpenGovernmentPilot}
+        onOpenLearningHub={() => setShowLearningModal(true)}
         onSwitchRole={switchDemoAccount}
       />
 
@@ -680,6 +688,15 @@ export default function Home() {
                 <span>{t("hero.cta_secondary")}</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </a>
+
+              <button
+                type="button"
+                onClick={() => setShowLearningModal(true)}
+                className="btn-editorial-secondary flex items-center gap-2 border-[#D8C2A6]/40 text-[#D8C2A6] hover:bg-[#D8C2A6]/10"
+              >
+                <BookOpen className="w-3.5 h-3.5" />
+                <span>{t("nav.learning_hub")}</span>
+              </button>
             </div>
 
             {/* Micro supporting metadata */}
@@ -2566,6 +2583,15 @@ export default function Home() {
         isOpen={showGovernmentModal}
         onClose={() => setShowGovernmentModal(false)}
         initialTab={governmentInitialTab}
+      />
+
+      {/* ============================================================ */}
+      {/* GFG LEARNING MANAGEMENT SYSTEM & CERTIFICATE SYSTEM          */}
+      {/* ============================================================ */}
+      <LearningHubModal
+        isOpen={showLearningModal}
+        onClose={() => setShowLearningModal(false)}
+        currentUser={currentUser}
       />
     </div>
   );
