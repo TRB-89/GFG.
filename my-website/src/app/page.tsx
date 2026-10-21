@@ -57,6 +57,10 @@ import { GovernmentPilotModal } from "@/components/GovernmentPilotModal";
 import { GuidedAssistanceSection } from "@/components/GuidedAssistanceSection";
 import { LearningHubModal } from "@/components/learning/LearningHubModal";
 import { CinematicBackground } from "@/components/editorial/CinematicBackground";
+import { CareerComebackPortal } from "@/components/editorial/CareerComebackPortal";
+import { ScrollScrubbedSequence } from "@/components/editorial/ScrollScrubbedSequence";
+import { WebGLDistortionTransition } from "@/components/editorial/WebGLDistortionTransition";
+import { PinnedEditorialStory } from "@/components/editorial/PinnedEditorialStory";
 import { CinematicHero } from "@/components/editorial/CinematicHero";
 import { MissionStorySection } from "@/components/editorial/MissionStorySection";
 import { CinematicFeaturesSection } from "@/components/editorial/CinematicFeaturesSection";
@@ -650,13 +654,49 @@ export default function Home() {
       )}
 
         {/* ============================================================ */}
-        {/* SECTION 1: CINEMATIC EDITORIAL HERO (FULL SCREEN)           */}
+        {/* PHASE 2: 3D CAREER COMEBACK PORTAL (MONUMENTAL THREE.JS)     */}
         {/* ============================================================ */}
-        <CinematicHero
+        <CareerComebackPortal
           onStartComeback={() => setShowOnboardingModal(true)}
           onOpenLearningHub={() => setShowLearningModal(true)}
           onOpenRoadmap={handleGenerateRoadmap}
           onOpenPassport={handleOpenPassport}
+        />
+
+        {/* ============================================================ */}
+        {/* PHASE 4: WEBGL DISTORTION TRANSITION 1 (ORGANIC LIQUID SILK) */}
+        {/* ============================================================ */}
+        <WebGLDistortionTransition
+          label="PASSAGE OF PERSPECTIVE // FROM HIATUS TO POWER"
+          sublabel="EVERY CHAPTER ENRICHES YOUR MASTERY"
+        />
+
+        {/* ============================================================ */}
+        {/* PHASE 3: SCROLL-SCRUBBED 4-STAGE CONTINUOUS FILM SEQUENCE    */}
+        {/* ============================================================ */}
+        <ScrollScrubbedSequence
+          onStartComeback={() => setShowOnboardingModal(true)}
+        />
+
+        {/* ============================================================ */}
+        {/* PHASE 4: WEBGL DISTORTION TRANSITION 2 (REFRACTIVE WAVE)     */}
+        {/* ============================================================ */}
+        <WebGLDistortionTransition
+          label="ALIGNMENT // PURPOSE TO EXECUTION"
+          sublabel="REDISCOVER WHAT'S POSSIBLE"
+        />
+
+        {/* ============================================================ */}
+        {/* PHASE 5: PINNED EDITORIAL STORYTELLING (5 CHAPTER PANELS)    */}
+        {/* ============================================================ */}
+        <PinnedEditorialStory
+          onOpenLearningHub={() => setShowLearningModal(true)}
+          onOpenMentorship={() => {
+            setMentorshipInitialTab("mentors");
+            setShowMentorshipModal(true);
+          }}
+          onOpenJobs={() => setShowJobsModal(true)}
+          onStartComeback={() => setShowOnboardingModal(true)}
         />
 
         {/* ============================================================ */}

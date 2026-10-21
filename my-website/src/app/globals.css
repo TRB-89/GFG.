@@ -12,33 +12,42 @@
   --color-burgundy-deep: #5A2B35;
   --color-pink-soft: #C79AA7;
 
-  --color-background: #111111;
-  --color-foreground: #F1E7DB;
-  --color-card: rgba(24, 24, 24, 0.85);
-  --color-card-foreground: #F1E7DB;
-  --color-primary: #F1E7DB;
-  --color-primary-foreground: #111111;
-  --color-secondary: #D8C2A6;
-  --color-secondary-foreground: #111111;
-  --color-muted: rgba(216, 194, 166, 0.08);
-  --color-muted-foreground: #9A9A9A;
-  --color-accent: #A56F7C;
-  --color-accent-foreground: #F1E7DB;
-  --color-border: rgba(216, 194, 166, 0.14);
+  --color-espresso: #171310;
+  --color-cocoa: #59382D;
+  --color-terracotta: #B66C4B;
+  --color-champagne: #D8B58C;
+  --color-ivory: #F4EDE3;
+
+  --color-background: #171310;
+  --color-foreground: #F4EDE3;
+  --color-card: rgba(30, 24, 20, 0.85);
+  --color-card-foreground: #F4EDE3;
+  --color-primary: #F4EDE3;
+  --color-primary-foreground: #171310;
+  --color-secondary: #D8B58C;
+  --color-secondary-foreground: #171310;
+  --color-muted: rgba(216, 181, 140, 0.08);
+  --color-muted-foreground: #A89B90;
+  --color-accent: #B66C4B;
+  --color-accent-foreground: #F4EDE3;
+  --color-border: rgba(216, 181, 140, 0.16);
 
   --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: var(--font-serif), Cormorant Garamond, Georgia, serif;
 }
 
 :root {
-  --bg-primary: #111111;
-  --bg-secondary: #181818;
-  --color-beige: #D8C2A6;
-  --color-rose: #A56F7C;
-  --color-cream: #F1E7DB;
-  --color-gray: #9A9A9A;
-  --color-burgundy: #5A2B35;
-  --color-pink: #C79AA7;
+  --bg-primary: #171310;
+  --bg-secondary: #221B17;
+  --color-espresso: #171310;
+  --color-cocoa: #59382D;
+  --color-terracotta: #B66C4B;
+  --color-champagne: #D8B58C;
+  --color-ivory: #F4EDE3;
+  --color-beige: #D8B58C;
+  --color-rose: #B66C4B;
+  --color-cream: #F4EDE3;
+  --color-gray: #A89B90;
 }
 
 @layer base {
