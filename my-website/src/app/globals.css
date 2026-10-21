@@ -193,6 +193,60 @@
   transform: translateY(-1px);
 }
 
+/* Luxury Burnt-Orange & Amber Glow Utilities */
+.btn-editorial-amber {
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  color: #0c0906;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 14px 30px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 25px rgba(234, 88, 12, 0.35);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  border: 1px solid rgba(254, 215, 170, 0.3);
+}
+
+.btn-editorial-amber:hover {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+  box-shadow: 0 8px 35px rgba(249, 115, 22, 0.55);
+  transform: translateY(-2px);
+  color: #000000;
+}
+
+.text-gradient-amber {
+  background: linear-gradient(135deg, #ffffff 0%, #fed7aa 25%, #f97316 65%, #ea580c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-copper {
+  background: linear-gradient(135deg, #fef8f0 0%, #fed7aa 40%, #fb923c 75%, #c2410c 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.card-editorial-glow {
+  background: linear-gradient(180deg, rgba(22, 16, 12, 0.8) 0%, rgba(13, 10, 8, 0.9) 100%);
+  border: 1px solid rgba(249, 115, 22, 0.16);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(254, 215, 170, 0.08);
+  backdrop-filter: blur(20px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-editorial-glow:hover {
+  border-color: rgba(249, 115, 22, 0.38);
+  box-shadow: 0 20px 50px -10px rgba(234, 88, 12, 0.16), inset 0 1px 0 rgba(254, 215, 170, 0.18);
+  transform: translateY(-3px);
+}
+
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
