@@ -25,8 +25,12 @@ class CandidateProfile(Base):
     linkedin_url = Column(Text, nullable=True)
     github_url = Column(Text, nullable=True)
     portfolio_url = Column(Text, nullable=True)
-    return_readiness_status = Column(String(50), default="active")
     career_break_visibility = Column(String(50), default="private") # private, employers, public
+    field_of_study = Column(String(255), nullable=True)
+    previous_profession = Column(String(255), nullable=True)
+    target_role = Column(String(255), nullable=True)
+    career_switch_willingness = Column(String(50), nullable=True) # yes, exploring, same_domain
+    support_preferences = Column(JSON, nullable=True)
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
 
@@ -119,6 +123,8 @@ class CandidateProject(Base):
     technologies = Column(String(255), nullable=True)
     project_url = Column(Text, nullable=True)
     github_url = Column(Text, nullable=True)
+    year_completed = Column(Integer, nullable=True)
+    skills_demonstrated = Column(String(255), nullable=True)
     start_date = Column(Date, nullable=True)
     end_date = Column(Date, nullable=True)
     created_at = Column(DateTime, default=utc_now)

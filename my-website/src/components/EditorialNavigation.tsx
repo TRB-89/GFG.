@@ -1,27 +1,27 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
-  User,
-  Users,
   Menu,
   X,
-  Shield,
-  Sparkles,
-  Building2,
-  GraduationCap,
-  Brain,
-  Layers,
   Globe,
-  Sliders,
-  Mic,
+  GraduationCap,
+  Sparkles,
+  ChevronDown,
+  User,
+  LogOut,
+  Shield,
+  Layers,
+  Compass,
   Briefcase,
-  WifiOff,
+  Users,
+  Mic,
+  Sliders,
+  DollarSign,
   BarChart3,
-  ExternalLink,
+  WifiOff,
 } from "lucide-react";
-import { useTranslation } from "@/lib/i18n/LanguageContext";
-import { SupportedLocale, LOCALE_NAMES } from "@/lib/i18n/LanguageContext";
+import { useTranslation, SupportedLocale, LOCALE_NAMES } from "@/lib/i18n/LanguageContext";
 import { useBandwidth } from "@/lib/bandwidth/BandwidthContext";
 
 export type PlatformRole = "candidate" | "employer" | "mentor" | "admin";
@@ -53,6 +53,7 @@ interface EditorialNavigationProps {
   onOpenGovernmentPilot?: (tab?: "dashboard" | "design" | "schemes" | "sdg" | "reporting" | "presentation") => void;
   onOpenLearningHub?: () => void;
   onSwitchRole: (role: PlatformRole) => void;
+  onLogout?: () => void;
 }
 
 export function EditorialNavigation({
@@ -75,49 +76,89 @@ export function EditorialNavigation({
   onOpenGovernmentPilot,
   onOpenLearningHub,
   onSwitchRole,
+  onLogout,
 }: EditorialNavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+
+  const moreRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   const { locale, setLocale, t } = useTranslation();
   const { lowBandwidthMode } = useBandwidth();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 40);
+      setIsScrolled(window.scrollY > 30);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Keyboard accessibility: Close menus on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMobileMenuOpen(false);
+        setLangMenuOpen(false);
+        setMoreMenuOpen(false);
+        setAccountMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  // Click outside listener for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreMenuOpen(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangMenuOpen(false);
+      }
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <>
-      {/* WCAG 2.2 AA Skip Link for Keyboard Navigation */}
+      {/* WCAG 2.2 AA Skip to content link */}
       <a href="#main-content" className="skip-to-content-link">
         {t("a11y.skip_to_content")}
       </a>
 
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20 flex items-center ${
           isScrolled
-            ? "bg-[#111111]/90 backdrop-blur-md border-b border-[#D8C2A6]/10 py-3 shadow-sm"
-            : "bg-transparent py-4 md:py-6"
+            ? "bg-[#0A0706]/92 backdrop-blur-xl border-b border-[#D97706]/20 shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+            : "bg-[#0A0706]/75 backdrop-blur-md border-b border-white/5"
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 flex items-center justify-between">
-          {/* LEFT: GFG Minimal Logo */}
-          <div className="flex items-center gap-3">
+        <div className="w-full px-6 sm:px-8 md:px-12 lg:px-16 flex items-center justify-between">
+          {/* ========================================================= */}
+          {/* LEFT: GFG Logo + GAP FOR GOOD Label                       */}
+          {/* ========================================================= */}
+          <div className="flex items-center gap-4 shrink-0">
             <a
               href="#home"
-              className="group flex items-baseline gap-2 text-[#F1E7DB] hover:opacity-85 transition-opacity"
+              className="group flex items-baseline gap-2.5 text-[#F5EDE4] hover:opacity-90 transition-opacity"
               aria-label="GFG Platform Home"
             >
-              <span className="font-sans text-xl md:text-2xl font-light tracking-tight text-[#F1E7DB]">
+              <span className="font-serif text-2xl sm:text-3xl font-bold tracking-tight text-[#F5EDE4] group-hover:text-[#D97706] transition-colors">
                 GFG
               </span>
-              <span className="micro-label text-[9px] text-[#A56F7C] tracking-[0.24em]">
-                CAREER
+              <span className="text-[10px] sm:text-[11px] font-mono tracking-[0.24em] text-[#D97706] uppercase font-medium">
+                GAP FOR GOOD
               </span>
             </a>
 
@@ -125,7 +166,7 @@ export function EditorialNavigation({
             {lowBandwidthMode && (
               <span
                 title="Low-Bandwidth Mode Active"
-                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] text-amber-300 font-mono"
+                className="hidden lg:inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/30 text-[10px] text-amber-300 font-mono"
               >
                 <WifiOff className="w-3 h-3" />
                 <span>Data Saver</span>
@@ -133,104 +174,199 @@ export function EditorialNavigation({
             )}
           </div>
 
-          {/* CENTER: Navigation Links (Translated) */}
+          {/* ========================================================= */}
+          {/* CENTER: Minimal, Modern Desktop Navigation               */}
+          {/* ========================================================= */}
           <nav
             aria-label="Primary Navigation"
-            className="hidden xl:flex items-center space-x-6 text-[11px] uppercase tracking-[0.16em] font-medium text-[#D8C2A6]"
+            className="hidden xl:flex items-center space-x-7 text-xs uppercase tracking-[0.18em] font-medium text-[#A89B90]"
           >
-            <a href="#guided-assistance" className="hover:text-[#F1E7DB] opacity-90 hover:opacity-100 transition-all text-amber-200">
-              {t("nav.need_help")}
-            </a>
-            <a href="#pathways" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
-              {t("nav.pathways")}
-            </a>
-            <a href="#skills" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
-              {t("nav.skills")}
-            </a>
-            <a href="#roadmap" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
-              {t("nav.roadmap")}
-            </a>
-            <a href="#mentorship" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
-              {t("nav.mentorship")}
-            </a>
-            <a href="#opportunities" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
-              {t("nav.opportunities")}
-            </a>
-            {onOpenLearningHub && (
-              <button
-                type="button"
-                onClick={onOpenLearningHub}
-                className="hover:text-[#F1E7DB] opacity-90 hover:opacity-100 transition-all uppercase flex items-center gap-1.5 text-[#E2D4C3]"
-                title="GFG Learning Hub & Verified Returnship Certificates"
-              >
-                <GraduationCap className="w-3.5 h-3.5 text-[#D8C2A6]" />
-                <span>Learning Hub</span>
-              </button>
-            )}
-            {onOpenEntrepreneurship && (
-              <button
-                type="button"
-                onClick={onOpenEntrepreneurship}
-                className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all uppercase"
-              >
-                {t("nav.entrepreneurship")}
-              </button>
-            )}
-            {onOpenEmployerDesk && (
-              <button
-                type="button"
-                onClick={() => onOpenEmployerDesk("dashboard")}
-                className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all uppercase flex items-center gap-1 text-[#E7C1C9]"
-                title="Employer Intelligence & Returnship Toolkit"
-              >
-                <Building2 className="w-3 h-3 text-[#E7C1C9]" />
-                <span>Recruiter Desk</span>
-              </button>
-            )}
-            {onOpenGovernmentPilot && (
-              <button
-                type="button"
-                onClick={() => onOpenGovernmentPilot("dashboard")}
-                className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all uppercase flex items-center gap-1 text-[#D8C2A6]"
-                title="Government Pilot & Impact Analytics (Module 11)"
-              >
-                <BarChart3 className="w-3 h-3 text-[#D8C2A6]" />
-                <span>Gov & Impact</span>
-              </button>
-            )}
+            {/* 1. Explore */}
             <a
-              href="/minister-presentation"
-              className="hover:text-[#F1E7DB] opacity-90 hover:opacity-100 transition-all uppercase flex items-center gap-1 text-emerald-300 font-semibold"
-              title="Official Ministerial Presentation & Briefing Dossier (Module 12)"
+              href="#mission"
+              className="relative py-1 text-[#F5EDE4]/90 hover:text-[#D97706] transition-colors group whitespace-nowrap"
             >
-              <Sparkles className="w-3 h-3 text-emerald-400" />
-              <span>Minister Briefing</span>
+              <span>Explore</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D97706] transition-all duration-300 group-hover:w-full" />
             </a>
-            <a href="#dashboard" className="hover:text-[#F1E7DB] opacity-80 hover:opacity-100 transition-all">
-              {t("nav.dashboard")}
-            </a>
+
+            {/* 2. Career Pathways */}
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("features");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+                else if (onOpenRoadmap) onOpenRoadmap();
+              }}
+              className="relative py-1 hover:text-[#D97706] transition-colors group whitespace-nowrap"
+            >
+              <span>Career Pathways</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D97706] transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            {/* 3. Skills */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenRoadmap) onOpenRoadmap();
+              }}
+              className="relative py-1 hover:text-[#D97706] transition-colors group whitespace-nowrap"
+            >
+              <span>Skills</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D97706] transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            {/* 4. Learning Hub */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenLearningHub) onOpenLearningHub();
+              }}
+              className="relative py-1 hover:text-[#D97706] transition-colors group flex items-center gap-1.5 whitespace-nowrap text-[#F5EDE4]"
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-[#D97706]" />
+              <span>Learning Hub</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D97706] transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            {/* 5. Mentorship */}
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenCommunity) onOpenCommunity("mentors");
+              }}
+              className="relative py-1 hover:text-[#D97706] transition-colors group whitespace-nowrap"
+            >
+              <span>Mentorship</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D97706] transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            {/* 6. Opportunities */}
+            <button
+              type="button"
+              onClick={() => {
+                const el = document.getElementById("features");
+                if (el) el.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="relative py-1 hover:text-[#D97706] transition-colors group whitespace-nowrap"
+            >
+              <span>Opportunities</span>
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#D97706] transition-all duration-300 group-hover:w-full" />
+            </button>
+
+            {/* 7. More Dropdown */}
+            <div className="relative" ref={moreRef}>
+              <button
+                type="button"
+                onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                className="relative py-1 hover:text-[#D97706] transition-colors flex items-center gap-1 whitespace-nowrap"
+                aria-expanded={moreMenuOpen}
+              >
+                <span>More</span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                    moreMenuOpen ? "rotate-180 text-[#D97706]" : ""
+                  }`}
+                />
+              </button>
+
+              {moreMenuOpen && (
+                <div className="absolute left-0 mt-3 w-64 bg-[#140D09] border border-[#D97706]/25 rounded-2xl shadow-2xl p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {onOpenGovernmentPilot && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenGovernmentPilot("dashboard");
+                        setMoreMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-[#20140E] text-[#F5EDE4] hover:text-[#D97706] transition-colors flex items-center gap-2.5 text-xs font-normal"
+                    >
+                      <BarChart3 className="w-4 h-4 text-[#D97706]" />
+                      <div>
+                        <p className="font-medium">Government &amp; Impact</p>
+                        <p className="text-[10px] text-[#A89B90] normal-case">Public pilots &amp; CSR alignment</p>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenEntrepreneurship && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenEntrepreneurship();
+                        setMoreMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-[#20140E] text-[#F5EDE4] hover:text-[#D97706] transition-colors flex items-center gap-2.5 text-xs font-normal"
+                    >
+                      <DollarSign className="w-4 h-4 text-[#D97706]" />
+                      <div>
+                        <p className="font-medium">Freelance &amp; Small Business</p>
+                        <p className="text-[10px] text-[#A89B90] normal-case">Independent consulting tools</p>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenA11y && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenA11y();
+                        setMoreMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-[#20140E] text-[#F5EDE4] hover:text-[#D97706] transition-colors flex items-center gap-2.5 text-xs font-normal"
+                    >
+                      <Sliders className="w-4 h-4 text-[#D97706]" />
+                      <div>
+                        <p className="font-medium">Accessibility Controls</p>
+                        <p className="text-[10px] text-[#A89B90] normal-case">WCAG 2.2 AA contrast &amp; fonts</p>
+                      </div>
+                    </button>
+                  )}
+
+                  {onOpenVoice && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onOpenVoice();
+                        setMoreMenuOpen(false);
+                      }}
+                      className="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-[#20140E] text-[#F5EDE4] hover:text-[#D97706] transition-colors flex items-center gap-2.5 text-xs font-normal"
+                    >
+                      <Mic className="w-4 h-4 text-[#D97706]" />
+                      <div>
+                        <p className="font-medium">Voice Assistant</p>
+                        <p className="text-[10px] text-[#A89B90] normal-case">Interactive speech navigation</p>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </nav>
 
-          {/* RIGHT: Tools, Language, Voice, Accessibility & Profile */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            {/* Language Selector Dropdown */}
-            <div className="relative">
+          {/* ========================================================= */}
+          {/* RIGHT: Language, Dashboard, Auth & Account               */}
+          {/* ========================================================= */}
+          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+            {/* 1. Language Selector Dropdown */}
+            <div className="relative" ref={langRef}>
               <button
                 type="button"
                 onClick={() => setLangMenuOpen(!langMenuOpen)}
                 aria-expanded={langMenuOpen}
                 aria-haspopup="true"
                 aria-label="Select Language"
-                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#1A1A1A] border border-[#D8C2A6]/20 text-[#D8C2A6] hover:text-[#F1E7DB] hover:border-[#D8C2A6]/40 text-[11px] font-mono tracking-wider transition-all focus-visible:ring-2 focus-visible:ring-[#F1E7DB]"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1A0F0A] border border-[#D97706]/20 text-[#F5EDE4] hover:border-[#D97706]/40 text-xs font-mono tracking-wider transition-all"
               >
-                <Globe className="w-3.5 h-3.5" />
-                <span className="font-semibold uppercase">{locale}</span>
+                <Globe className="w-3.5 h-3.5 text-[#D97706]" />
+                <span className="uppercase font-semibold text-[11px]">{locale}</span>
+                <ChevronDown className="w-3 h-3 text-[#A89B90]" />
               </button>
 
               {langMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 mt-2 w-36 bg-[#181818] border border-[#D8C2A6]/20 rounded-xl shadow-2xl py-1 z-50 text-xs font-mono animate-in fade-in"
+                  className="absolute right-0 mt-2 w-40 bg-[#140D09] border border-[#D97706]/25 rounded-2xl shadow-2xl py-1.5 z-50 text-xs font-mono animate-in fade-in duration-150"
                 >
                   {(["en", "ta", "hi"] as const).map((l) => (
                     <button
@@ -241,366 +377,309 @@ export function EditorialNavigation({
                         setLocale(l);
                         setLangMenuOpen(false);
                       }}
-                      className={`w-full text-left px-3.5 py-2 hover:bg-[#252525] flex items-center justify-between transition-colors ${
-                        locale === l ? "text-[#F1E7DB] font-bold bg-[#222]" : "text-[#9A9A9A]"
+                      className={`w-full text-left px-3.5 py-2 hover:bg-[#20140E] flex items-center justify-between transition-colors ${
+                        locale === l ? "text-[#D97706] font-bold bg-[#1A0F0A]" : "text-[#A89B90]"
                       }`}
                     >
                       <span>{LOCALE_NAMES[l].native}</span>
-                      <span className="text-[10px] uppercase opacity-60">{l}</span>
+                      <span className="text-[10px] uppercase opacity-70">{l}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Accessibility Settings Trigger */}
-            {onOpenA11y && (
-              <button
-                type="button"
-                onClick={onOpenA11y}
-                aria-label={t("nav.accessibility")}
-                title="Accessibility & Comfort Settings (WCAG 2.2 AA)"
-                className="w-8 h-8 rounded-full bg-[#1A1A1A] hover:bg-[#242424] border border-[#D8C2A6]/20 flex items-center justify-center text-[#D8C2A6] hover:text-[#F1E7DB] transition-all focus-visible:ring-2 focus-visible:ring-[#F1E7DB]"
-              >
-                <Sliders className="w-3.5 h-3.5" />
-              </button>
+            {/* 2. Authenticated State: Dashboard Button & Account Menu */}
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                {onOpenDashboard && (
+                  <button
+                    type="button"
+                    onClick={onOpenDashboard}
+                    className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#1A0F0A] hover:bg-[#25150F] text-[#F5EDE4] border border-[#D97706]/35 hover:border-[#D97706]/60 text-xs font-medium tracking-wide transition-all shadow-[0_0_20px_rgba(217,119,6,0.15)]"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-[#D97706]" />
+                    <span>Dashboard</span>
+                  </button>
+                )}
+
+                {/* Account Avatar Menu */}
+                <div className="relative" ref={accountRef}>
+                  <button
+                    type="button"
+                    onClick={() => setAccountMenuOpen(!accountMenuOpen)}
+                    aria-expanded={accountMenuOpen}
+                    className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-1.5 rounded-full bg-gradient-to-r from-[#1A0F0A] to-[#25150F] border border-[#D97706]/40 hover:border-[#D97706] transition-all text-xs text-[#F5EDE4]"
+                    title="Account details"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-[#D97706]/20 border border-[#D97706]/50 flex items-center justify-center text-[#D97706] font-semibold text-xs">
+                      {currentUser.full_name ? currentUser.full_name.charAt(0).toUpperCase() : "U"}
+                    </div>
+                    <span className="hidden md:inline font-medium text-xs max-w-[120px] truncate">
+                      {currentUser.full_name || "Account"}
+                    </span>
+                    <ChevronDown className="w-3 h-3 text-[#A89B90]" />
+                  </button>
+
+                  {accountMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-[#140D09] border border-[#D97706]/30 rounded-2xl shadow-2xl p-3 z-50 text-xs font-sans animate-in fade-in duration-150">
+                      <div className="pb-3 border-b border-white/5 space-y-0.5">
+                        <p className="font-semibold text-[#F5EDE4] text-sm">{currentUser.full_name}</p>
+                        <p className="text-[11px] text-[#A89B90] font-mono truncate">{currentUser.email}</p>
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-[#D97706]/15 border border-[#D97706]/30 text-[10px] font-mono text-[#D97706] uppercase">
+                          Role: {currentRole}
+                        </span>
+                      </div>
+
+                      <div className="py-2 space-y-1">
+                        {onOpenDashboard && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onOpenDashboard();
+                              setAccountMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[#20140E] text-[#F5EDE4] transition-colors flex items-center gap-2"
+                          >
+                            <Layers className="w-3.5 h-3.5 text-[#D97706]" />
+                            <span>Candidate Dashboard</span>
+                          </button>
+                        )}
+
+                        {onOpenPassport && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onOpenPassport();
+                              setAccountMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[#20140E] text-[#F5EDE4] transition-colors flex items-center gap-2"
+                          >
+                            <Shield className="w-3.5 h-3.5 text-[#D97706]" />
+                            <span>Career Continuity Passport</span>
+                          </button>
+                        )}
+
+                        {onOpenAdmin && currentRole === "admin" && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onOpenAdmin();
+                              setAccountMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-[#20140E] text-[#F5EDE4] transition-colors flex items-center gap-2"
+                          >
+                            <Shield className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Governance Portal</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Demo Persona Switcher */}
+                      <div className="pt-2 border-t border-white/5 space-y-1">
+                        <p className="text-[10px] font-mono uppercase tracking-wider text-[#A89B90] px-3">
+                          Switch Role
+                        </p>
+                        <div className="grid grid-cols-2 gap-1 pt-1">
+                          {(["candidate", "employer", "mentor", "admin"] as PlatformRole[]).map((r) => (
+                            <button
+                              key={r}
+                              type="button"
+                              onClick={() => {
+                                onSwitchRole(r);
+                                setAccountMenuOpen(false);
+                              }}
+                              className={`px-2.5 py-1.5 rounded-lg text-[11px] font-mono capitalize text-left transition-colors ${
+                                currentRole === r
+                                  ? "bg-[#D97706]/20 border border-[#D97706]/40 text-[#D97706] font-semibold"
+                                  : "text-[#A89B90] hover:bg-[#20140E] hover:text-[#F5EDE4]"
+                              }`}
+                            >
+                              {r}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {onLogout && (
+                        <div className="pt-2 mt-2 border-t border-white/5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              onLogout();
+                              setAccountMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-950/40 text-red-300 transition-colors flex items-center gap-2"
+                          >
+                            <LogOut className="w-3.5 h-3.5 text-red-400" />
+                            <span>Sign Out</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Guest State: Sign In / Get Started buttons */
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onOpenAuth}
+                  className="hidden sm:inline-block px-4 py-2 text-xs font-medium text-[#F5EDE4] hover:text-[#D97706] tracking-wider uppercase transition-colors"
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenAuth}
+                  className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#A8551F] via-[#D97706] to-[#F59E0B] hover:opacity-95 text-[#0A0706] font-semibold text-xs tracking-wider uppercase shadow-[0_0_30px_rgba(217,119,6,0.4)] hover:shadow-[0_0_40px_rgba(245,158,11,0.6)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                >
+                  Get Started
+                </button>
+              </div>
             )}
 
-            {/* Voice Assistant Trigger */}
-            {onOpenVoice && (
-              <button
-                type="button"
-                onClick={onOpenVoice}
-                aria-label={t("nav.voice_assistant")}
-                title="Spoken Voice Guide (Mic)"
-                className="w-8 h-8 rounded-full bg-[#A56F7C]/20 hover:bg-[#A56F7C]/35 border border-[#A56F7C]/40 flex items-center justify-center text-[#A56F7C] hover:text-[#F1E7DB] transition-all focus-visible:ring-2 focus-visible:ring-[#F1E7DB]"
-              >
-                <Mic className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            {/* Entrepreneurship Quick Launch Button */}
-            {onOpenEntrepreneurship && (
-              <button
-                type="button"
-                onClick={onOpenEntrepreneurship}
-                className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-[#D8C2A6]/30 bg-[#181818] text-[#F1E7DB] text-[10px] font-mono uppercase tracking-wider hover:border-[#D8C2A6] hover:bg-[#202020] transition-all"
-              >
-                <Briefcase className="w-3 h-3 text-[#D8C2A6]" />
-                <span>Hub</span>
-              </button>
-            )}
-
-            {/* 4-Role Persona Switcher Pill */}
-            <div className="hidden 2xl:flex items-center p-0.5 rounded-full bg-[#181818] border border-[#D8C2A6]/15 text-[10px] font-mono tracking-wider uppercase">
-              <button
-                type="button"
-                onClick={() => onSwitchRole("candidate")}
-                title="Switch to Candidate Persona (Ananya Raman)"
-                className={`px-2 py-0.5 rounded-full transition-all ${
-                  currentRole === "candidate"
-                    ? "bg-[#F1E7DB] text-[#111111] font-semibold"
-                    : "text-[#9A9A9A] hover:text-[#F1E7DB]"
-                }`}
-              >
-                Candidate
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onSwitchRole("employer");
-                  if (onOpenEmployerDesk) onOpenEmployerDesk("dashboard");
-                }}
-                title="Switch to Employer Recruiter Desk (Nova Tech)"
-                className={`px-2 py-0.5 rounded-full transition-all ${
-                  currentRole === "employer"
-                    ? "bg-[#D8C2A6] text-[#111111] font-semibold"
-                    : "text-[#9A9A9A] hover:text-[#F1E7DB]"
-                }`}
-              >
-                Employer
-              </button>
-              <button
-                type="button"
-                onClick={() => onSwitchRole("mentor")}
-                title="Switch to Mentor View (Dr. Meera Iyer)"
-                className={`px-2 py-0.5 rounded-full transition-all ${
-                  currentRole === "mentor"
-                    ? "bg-[#A56F7C] text-[#F1E7DB] font-semibold"
-                    : "text-[#9A9A9A] hover:text-[#F1E7DB]"
-                }`}
-              >
-                Mentor
-              </button>
-              <button
-                type="button"
-                onClick={() => onSwitchRole("admin")}
-                title="Switch to Administrator Governance Desk"
-                className={`px-2 py-0.5 rounded-full transition-all ${
-                  currentRole === "admin"
-                    ? "bg-emerald-900 text-emerald-200 border border-emerald-500/30 font-semibold"
-                    : "text-[#9A9A9A] hover:text-[#F1E7DB]"
-                }`}
-              >
-                Admin
-              </button>
-            </div>
-
-            {/* User Profile / Sign In */}
-            <button
-              type="button"
-              onClick={onOpenDashboard || onOpenAuth}
-              className="text-xs uppercase tracking-[0.16em] font-medium text-[#F1E7DB] hover:text-[#D8C2A6] transition-colors flex items-center gap-1.5 py-1 px-2.5 rounded-lg hover:bg-white/5"
-              aria-label="User Account"
-            >
-              <User className="w-3.5 h-3.5 text-[#D8C2A6]" />
-              <span className="hidden sm:inline">
-                {currentUser?.full_name ? currentUser.full_name.split(" ")[0] : "Sign In"}
-              </span>
-            </button>
-
-            {/* Mobile Navigation Toggle */}
+            {/* Mobile Hamburger Button */}
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="xl:hidden p-1.5 rounded-full text-[#F1E7DB] hover:bg-[#181818] transition-colors"
-              aria-label="Toggle Navigation Menu"
+              className="xl:hidden p-2 rounded-xl bg-[#1A0F0A] border border-[#D97706]/20 text-[#F5EDE4] hover:border-[#D97706]/40 transition-colors"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
-      </header>
 
-      {/* Mobile Menu Dropdown */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 top-[65px] z-40 bg-[#111111]/98 backdrop-blur-xl xl:hidden flex flex-col p-6 sm:p-8 space-y-4 text-sm uppercase font-mono tracking-widest text-[#F1E7DB] border-t border-[#D8C2A6]/10 animate-in fade-in overflow-y-auto">
-          {/* Quick Guided Assistance */}
-          <a
-            href="#guided-assistance"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-amber-300 hover:text-white transition-colors py-2 border-b border-[#222] flex items-center justify-between"
+        {/* ========================================================= */}
+        {/* MOBILE MENU DRAWER                                        */}
+        {/* ========================================================= */}
+        {mobileMenuOpen && (
+          <div
+            className="xl:hidden fixed inset-x-0 top-20 bg-[#0A0706]/98 backdrop-blur-2xl border-b border-[#D97706]/20 p-6 space-y-6 shadow-2xl z-40 max-h-[85vh] overflow-y-auto animate-in slide-in-from-top-4 duration-300"
           >
-            <span>★ // {t("nav.need_help")}</span>
-            <span className="text-[10px] bg-amber-400/20 text-amber-300 px-2 py-0.5 rounded">Guided</span>
-          </a>
+            <nav className="flex flex-col space-y-3 font-sans text-sm uppercase tracking-wider">
+              <a
+                href="#mission"
+                onClick={() => setMobileMenuOpen(false)}
+                className="px-4 py-3 rounded-xl hover:bg-[#1A0F0A] text-[#F5EDE4] flex items-center justify-between"
+              >
+                <span>Explore</span>
+                <span className="text-xs text-[#D97706]">01 //</span>
+              </a>
 
-          {/* Quick Mobile Action Buttons */}
-          <div className="grid grid-cols-2 gap-2 pb-2 border-b border-[#222]">
-            {onOpenA11y && (
               <button
                 type="button"
                 onClick={() => {
                   setMobileMenuOpen(false);
-                  onOpenA11y();
+                  const el = document.getElementById("features");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
-                className="py-2.5 px-3 rounded-xl bg-[#1C1C1C] border border-[#D8C2A6]/20 text-[11px] text-[#D8C2A6] flex items-center justify-center gap-1.5"
+                className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#1A0F0A] text-[#F5EDE4] flex items-center justify-between"
               >
-                <Sliders className="w-3.5 h-3.5" />
-                <span>{t("nav.accessibility")}</span>
+                <span>Career Pathways</span>
+                <span className="text-xs text-[#D97706]">02 //</span>
               </button>
-            )}
-            {onOpenVoice && (
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenVoice();
-                }}
-                className="py-2.5 px-3 rounded-xl bg-[#A56F7C]/20 border border-[#A56F7C]/40 text-[11px] text-[#F1E7DB] flex items-center justify-center gap-1.5"
-              >
-                <Mic className="w-3.5 h-3.5 text-[#A56F7C]" />
-                <span>{t("nav.voice_assistant")}</span>
-              </button>
-            )}
-          </div>
 
-          <a
-            href="#pathways"
-            onClick={() => setMobileMenuOpen(false)}
-            className="hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818]"
-          >
-            01 // {t("nav.pathways")}
-          </a>
-          <a
-            href="#skills"
-            onClick={() => setMobileMenuOpen(false)}
-            className="hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818]"
-          >
-            02 // {t("nav.skills")}
-          </a>
-          <a
-            href="#roadmap"
-            onClick={() => setMobileMenuOpen(false)}
-            className="hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818]"
-          >
-            03 // {t("nav.roadmap")}
-          </a>
-          <a
-            href="#mentorship"
-            onClick={() => setMobileMenuOpen(false)}
-            className="hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818]"
-          >
-            04 // {t("nav.mentorship")}
-          </a>
-          <a
-            href="#opportunities"
-            onClick={() => setMobileMenuOpen(false)}
-            className="hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818]"
-          >
-            05 // {t("nav.opportunities")}
-          </a>
-          {onOpenLearningHub && (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenLearningHub();
-              }}
-              className="w-full text-left hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818] flex items-center justify-between text-[#E2D4C3]"
-            >
-              <span>06 // Learning Hub & Certificates</span>
-              <GraduationCap className="w-4 h-4 text-[#D8C2A6]" />
-            </button>
-          )}
-          {onOpenEntrepreneurship && (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenEntrepreneurship();
-              }}
-              className="text-left text-[#D8C2A6] hover:text-[#F1E7DB] transition-colors py-2 border-b border-[#181818] flex items-center justify-between"
-            >
-              <span>06 // {t("nav.entrepreneurship")}</span>
-              <Briefcase className="w-3.5 h-3.5" />
-            </button>
-          )}
-          <a
-            href="#dashboard"
-            onClick={() => setMobileMenuOpen(false)}
-            className="hover:text-[#D8C2A6] transition-colors py-2 border-b border-[#181818]"
-          >
-            07 // {t("nav.dashboard")}
-          </a>
-          {onOpenGovernmentPilot && (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenGovernmentPilot("dashboard");
-              }}
-              className="text-left text-[#D8C2A6] hover:text-[#F1E7DB] transition-colors py-2 border-b border-[#181818] flex items-center justify-between"
-            >
-              <span>Gov // Pilot & Impact Analytics</span>
-              <BarChart3 className="w-3.5 h-3.5" />
-            </button>
-          )}
-          {currentRole === "candidate" && onOpenOnboarding && (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenOnboarding();
-              }}
-              className="text-left text-[#A56F7C] hover:text-[#F1E7DB] transition-colors py-2 border-b border-[#181818] flex items-center justify-between"
-            >
-              <span>08 // Intelligent Onboarding</span>
-              <Sparkles className="w-3.5 h-3.5" />
-            </button>
-          )}
-          {currentRole === "candidate" && onOpenDigitalTwin && (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenDigitalTwin();
-              }}
-              className="text-left text-blue-300 hover:text-[#F1E7DB] transition-colors py-2 border-b border-[#181818] flex items-center justify-between"
-            >
-              <span>09 // AI Career Digital Twin</span>
-              <Brain className="w-3.5 h-3.5" />
-            </button>
-          )}
-          {currentRole === "candidate" && onOpenSimulator && (
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenSimulator();
-              }}
-              className="text-left text-cyan-300 hover:text-[#F1E7DB] transition-colors py-2 border-b border-[#181818] flex items-center justify-between"
-            >
-              <span>10 // AI Career Future Simulator</span>
-              <Sparkles className="w-3.5 h-3.5" />
-            </button>
-          )}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onOpenRoadmap) onOpenRoadmap();
+                }}
+                className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#1A0F0A] text-[#F5EDE4] flex items-center justify-between"
+              >
+                <span>Skills &amp; AI Roadmap</span>
+                <span className="text-xs text-[#D97706]">03 //</span>
+              </button>
 
-          <a
-            href="/minister-presentation"
-            onClick={() => setMobileMenuOpen(false)}
-            className="text-left text-emerald-300 hover:text-[#F1E7DB] transition-colors py-2 border-b border-[#181818] flex items-center justify-between"
-          >
-            <span>12 // Ministerial Briefing Deck</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (onOpenLearningHub) onOpenLearningHub();
+                }}
+                className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#1A0F0A] text-[#F5EDE4] flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-[#D97706]" />
+                  <span>Learning Hub</span>
+                </div>
+                <span className="text-xs text-[#D97706]">04 //</span>
+              </button>
 
-          {/* Role switcher on mobile */}
-          <div className="pt-4 border-t border-[#181818] space-y-2">
-            <span className="text-[11px] text-[#9A9A9A] block">Switch Active Persona:</span>
-            <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => {
-                  onSwitchRole("candidate");
                   setMobileMenuOpen(false);
+                  if (onOpenCommunity) onOpenCommunity("mentors");
                 }}
-                className={`p-2 rounded-lg text-center ${
-                  currentRole === "candidate" ? "bg-[#F1E7DB] text-[#111111] font-semibold" : "bg-[#181818] text-[#9A9A9A]"
-                }`}
+                className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#1A0F0A] text-[#F5EDE4] flex items-center justify-between"
               >
-                Ananya (Cand.)
+                <span>Mentorship</span>
+                <span className="text-xs text-[#D97706]">05 //</span>
               </button>
+
               <button
                 type="button"
                 onClick={() => {
-                  onSwitchRole("employer");
                   setMobileMenuOpen(false);
+                  const el = document.getElementById("features");
+                  if (el) el.scrollIntoView({ behavior: "smooth" });
                 }}
-                className={`p-2 rounded-lg text-center ${
-                  currentRole === "employer" ? "bg-[#D8C2A6] text-[#111111] font-semibold" : "bg-[#181818] text-[#9A9A9A]"
-                }`}
+                className="w-full text-left px-4 py-3 rounded-xl hover:bg-[#1A0F0A] text-[#F5EDE4] flex items-center justify-between"
               >
-                Nova Tech
+                <span>Opportunities</span>
+                <span className="text-xs text-[#D97706]">06 //</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onSwitchRole("mentor");
-                  setMobileMenuOpen(false);
-                }}
-                className={`p-2 rounded-lg text-center ${
-                  currentRole === "mentor" ? "bg-[#A56F7C] text-[#F1E7DB] font-semibold" : "bg-[#181818] text-[#9A9A9A]"
-                }`}
-              >
-                Dr. Meera (Mentor)
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  onSwitchRole("admin");
-                  setMobileMenuOpen(false);
-                }}
-                className={`p-2 rounded-lg text-center ${
-                  currentRole === "admin" ? "bg-emerald-900 text-emerald-200 font-semibold" : "bg-[#181818] text-[#9A9A9A]"
-                }`}
-              >
-                Super-Admin
-              </button>
+            </nav>
+
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              {currentUser ? (
+                <>
+                  {onOpenDashboard && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onOpenDashboard();
+                      }}
+                      className="w-full py-3 rounded-full bg-[#1A0F0A] border border-[#D97706]/40 text-[#F5EDE4] font-medium text-xs uppercase tracking-wider text-center"
+                    >
+                      Open Candidate Dashboard
+                    </button>
+                  )}
+                  {onLogout && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        onLogout();
+                      }}
+                      className="w-full py-3 rounded-full bg-red-950/40 text-red-300 font-medium text-xs uppercase tracking-wider text-center"
+                    >
+                      Sign Out
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    onOpenAuth();
+                  }}
+                  className="w-full py-3.5 rounded-full bg-gradient-to-r from-[#A8551F] via-[#D97706] to-[#F59E0B] text-[#0A0706] font-bold text-xs uppercase tracking-wider text-center"
+                >
+                  Start Your Comeback
+                </button>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </header>
     </>
   );
 }

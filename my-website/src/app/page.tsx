@@ -303,7 +303,11 @@ export default function Home() {
       type: "success",
       text: "Onboarding completed! Your personalized comeback plan is now live.",
     });
+    if (typeof window !== "undefined") {
+      localStorage.setItem("gfg_candidate_onboarded", "true");
+    }
     await refreshCandidateData();
+    setShowOnboardingModal(false);
     setShowDashboardModal(true);
   };
 
@@ -585,7 +589,15 @@ export default function Home() {
           if (currentRole === "employer") {
             handleOpenEmployerDesk("dashboard");
           } else {
-            setShowDashboardModal(true);
+            const hasCompleted =
+              (currentUser as any)?.onboarding_completed ||
+              (typeof window !== "undefined" &&
+                localStorage.getItem("gfg_candidate_onboarded") === "true");
+            if (!hasCompleted) {
+              setShowOnboardingModal(true);
+            } else {
+              setShowDashboardModal(true);
+            }
           }
         }}
         onOpenPassport={handleOpenPassport}
@@ -718,9 +730,20 @@ export default function Home() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onSuccess={(u) => {
+        onSuccess={async (u: any) => {
           setCurrentUser(u);
           setFeedbackMsg({ type: "success", text: "Successfully authenticated." });
+          await refreshCandidateData();
+          setShowAuthModal(false);
+          const hasCompleted =
+            u?.onboarding_completed ||
+            (typeof window !== "undefined" &&
+              localStorage.getItem("gfg_candidate_onboarded") === "true");
+          if (!hasCompleted) {
+            setShowOnboardingModal(true);
+          } else {
+            setShowDashboardModal(true);
+          }
         }}
       />
 

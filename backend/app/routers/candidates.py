@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from backend.app.database.database import get_db
 from backend.app.models.user import Profile
-from backend.app.models.candidate import CandidateProfile, CareerBreak, OnboardingDraft, Skill, CandidateSkill
+from backend.app.models.candidate import CandidateProfile, CareerBreak, OnboardingDraft, Skill, CandidateSkill, CandidateProject
 from backend.app.schemas.candidate import (
     CandidateProfileUpdate,
     CandidateProfileResponse,
@@ -77,6 +77,20 @@ def format_candidate_details(cand: CandidateProfile, user: Profile, is_employer_
         for ci in cand.interests
     ]
 
+    projects_formatted = [
+        {
+            "id": p.id,
+            "title": p.title,
+            "description": p.description,
+            "technologies": p.technologies,
+            "project_url": p.project_url,
+            "github_url": p.github_url,
+            "year_completed": getattr(p, "year_completed", None),
+            "skills_demonstrated": getattr(p, "skills_demonstrated", None),
+        }
+        for p in cand.projects
+    ]
+
     return {
         "id": cand.id,
         "user_id": user.id,
@@ -87,6 +101,12 @@ def format_candidate_details(cand: CandidateProfile, user: Profile, is_employer_
         "profile_photo_url": user.profile_photo_url,
         "headline": cand.headline,
         "highest_qualification": cand.highest_qualification,
+        "field_of_study": cand.field_of_study,
+        "previous_profession": cand.previous_profession,
+        "target_role": cand.target_role,
+        "career_switch_willingness": cand.career_switch_willingness,
+        "support_preferences": cand.support_preferences,
+        "onboarding_completed": cand.onboarding_completed,
         "years_experience": cand.years_experience or 0.0,
         "previous_job_title": cand.previous_job_title,
         "previous_company": cand.previous_company,
@@ -98,12 +118,13 @@ def format_candidate_details(cand: CandidateProfile, user: Profile, is_employer_
         "linkedin_url": cand.linkedin_url,
         "github_url": cand.github_url,
         "portfolio_url": cand.portfolio_url,
-        "return_readiness_status": cand.return_readiness_status,
+        "return_readiness_status": getattr(cand, "return_readiness_status", cand.current_status),
         "career_break_visibility": cand.career_break_visibility,
         "profile_completion": completion,
         "career_breaks": breaks_formatted,
         "skills": skills_formatted,
         "interests": interests_formatted,
+        "projects": projects_formatted,
     }
 
 @router.get("/me")
@@ -288,8 +309,35 @@ def complete_onboarding(
     cand.languages = req.language_preference or "English"
     cand.salary_expectation = req.salary_expectation
     cand.onboarding_completed = True
+    cand.field_of_study = req.field_of_study
+    cand.previous_profession = req.previous_profession
+    cand.target_role = req.target_role
+    cand.career_switch_willingness = req.career_switch_willingness
+    cand.support_preferences = req.support_preferences
     if req.resume_url:
         cand.resume_url = req.resume_url
+    if req.linkedin_url:
+        cand.linkedin_url = req.linkedin_url
+    if req.github_url:
+        cand.github_url = req.github_url
+    if req.portfolio_url:
+        cand.portfolio_url = req.portfolio_url
+
+    # Save Projects
+    if req.projects:
+        for p in req.projects:
+            if isinstance(p, dict) and p.get("title"):
+                proj = CandidateProject(
+                    candidate_id=cand.id,
+                    title=p.get("title", "Project"),
+                    description=p.get("description", ""),
+                    technologies=p.get("technologies", ""),
+                    project_url=p.get("project_url"),
+                    github_url=p.get("github_url"),
+                    year_completed=p.get("year_completed"),
+                    skills_demonstrated=p.get("skills_demonstrated")
+                )
+                db.add(proj)
 
     # 2. Update or Create Career Break record (Optional & respectful)
     if req.career_break_start_date or req.currently_on_break or req.career_break_reason:

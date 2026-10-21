@@ -195,6 +195,10 @@ class OnboardingCompleteRequest(BaseModel):
     industry: Optional[str] = "Technology"
     experience_years: float = Field(0.0, ge=0.0)
     qualifications: Optional[str] = None
+    field_of_study: Optional[str] = None
+    previous_profession: Optional[str] = None
+    target_role: Optional[str] = None
+    career_switch_willingness: Optional[str] = "same_domain"
     existing_skills: List[str] = Field(default_factory=list)
     career_break_start_date: Optional[date] = None
     career_break_end_date: Optional[date] = None
@@ -209,3 +213,9 @@ class OnboardingCompleteRequest(BaseModel):
     profile_visibility: str = Field("private", pattern="^(private|employers|public)$")
     opt_into_employer_sharing: bool = False
     resume_url: Optional[str] = None
+    linkedin_url: Optional[str] = None
+    github_url: Optional[str] = None
+    portfolio_url: Optional[str] = None
+    projects: Optional[List[dict]] = Field(default_factory=list)
+    support_preferences: Optional[dict] = Field(default_factory=dict)
+

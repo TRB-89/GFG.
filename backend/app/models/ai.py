@@ -118,3 +118,12 @@ class VerificationRecord(Base):
     expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+class CareerComebackAssessment(Base):
+    __tablename__ = "career_comeback_assessments"
+
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    candidate_id = Column(String(36), ForeignKey("candidate_profiles.id", ondelete="CASCADE"), nullable=False, index=True)
+    assessment_data = Column(JSON, nullable=False)
+    generated_at = Column(DateTime, default=utc_now)
+
